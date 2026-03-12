@@ -30,6 +30,11 @@ Prompt principal que usei com a IA:
 - Ajuste feito: reforço com `@IsNotEmpty()` e `@MaxLength(200)` no `CreateTicketDto`, além de `@IsEnum(...)` para `category` e `status`.
 - Motivo: evitar aceitar payload inválido e reduzir erro em runtime.
 
+### 4) Validação de query no GET /tickets (ajuste posterior)
+- Inicialmente, os filtros `status` e `category` eram lidos como query string direta no controller.
+- Ajuste feito: criei `FindTicketsQueryDto` com `@IsOptional()` + `@IsEnum()` e passei a usar `@Query() query: FindTicketsQueryDto` no `GET /tickets`.
+- Motivo: impedir valores inválidos de filtro e manter a validação consistente com os demais DTOs da API.
+
 ## Exemplo onde a IA acelerou significativamente uma tarefa
 A maior aceleração foi na montagem do backend da Fase 1 em bloco (estrutura de arquivos + CRUD completo + configuração global do Nest).
 

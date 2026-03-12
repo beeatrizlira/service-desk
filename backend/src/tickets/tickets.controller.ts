@@ -12,9 +12,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { FindTicketsQueryDto } from './dto/find-tickets-query.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
-import { TicketCategory } from './enums/ticket-category.enum';
-import { TicketStatus } from './enums/ticket-status.enum';
 import { TicketsService } from './tickets.service';
 
 @Controller('tickets')
@@ -27,11 +26,8 @@ export class TicketsController {
   }
 
   @Get()
-  findAll(
-    @Query('status') status?: TicketStatus,
-    @Query('category') category?: TicketCategory,
-  ) {
-    return this.ticketsService.findAll({ status, category });
+  findAll(@Query() query: FindTicketsQueryDto) {
+    return this.ticketsService.findAll(query);
   }
 
   @Get(':id')
