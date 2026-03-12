@@ -1,0 +1,117 @@
+@if (showSuccessToast) {
+  <div
+    class="fixed right-4 top-24 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-lg"
+  >
+    Solicitacao criada com sucesso.
+  </div>
+}
+
+@if (showErrorToast) {
+  <div
+    class="fixed right-4 top-40 z-50 flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800 shadow-lg"
+  >
+    <span>{{ errorMessage }}</span>
+    <button
+      type="button"
+      (click)="closeErrorToast()"
+      class="rounded p-0.5 text-rose-700 transition hover:bg-rose-100 hover:text-rose-900"
+      aria-label="Fechar aviso de erro"
+    >
+      x
+    </button>
+  </div>
+}
+
+<section class="mx-auto max-w-3xl space-y-6">
+  <header class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Nova Solicitacao</p>
+    <h2 class="text-3xl font-semibold text-slate-900">Abrir chamado</h2>
+    <p class="text-sm text-slate-600">
+      Preencha os campos abaixo para registrar uma solicitacao para o time de suporte.
+    </p>
+  </header>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm md:p-8"
+  >
+    <!-- Titulo -->
+    <div class="space-y-2">
+      <label for="ticket-title" class="text-sm font-semibold text-slate-700">Titulo</label>
+      <input
+        id="ticket-title"
+        type="text"
+        formControlName="title"
+        placeholder="Ex.: Nao consigo acessar o sistema interno"
+        class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-200"
+        [class.border-slate-300]="!titleInvalid"
+        [class.border-rose-400]="titleInvalid"
+      />
+      @if (titleInvalid) {
+        @if (form.get('title')!.hasError('required')) {
+          <p class="text-xs text-rose-500">Titulo e obrigatorio.</p>
+        } @else if (form.get('title')!.hasError('maxlength')) {
+          <p class="text-xs text-rose-500">Titulo deve ter no maximo 200 caracteres.</p>
+        }
+      }
+    </div>
+
+    <!-- Categoria -->
+    <div class="space-y-2">
+      <label for="ticket-category" class="text-sm font-semibold text-slate-700">Categoria</label>
+      <select
+        id="ticket-category"
+        formControlName="category"
+        class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-200"
+        [class.border-slate-300]="!categoryInvalid"
+        [class.border-rose-400]="categoryInvalid"
+      >
+        <option value="">Selecione</option>
+        <option value="TI">TI</option>
+        <option value="RH">RH</option>
+        <option value="INFRASTRUCTURE">Infraestrutura</option>
+        <option value="FINANCIAL">Financeiro</option>
+        <option value="OTHER">Outros</option>
+      </select>
+      @if (categoryInvalid) {
+        <p class="text-xs text-rose-500">Categoria e obrigatoria.</p>
+      }
+    </div>
+
+    <!-- Descricao -->
+    <div class="space-y-2">
+      <label for="ticket-description" class="text-sm font-semibold text-slate-700">Descricao</label>
+      <textarea
+        id="ticket-description"
+        formControlName="description"
+        rows="6"
+        placeholder="Descreva o problema com o maximo de contexto possivel..."
+        class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-200"
+        [class.border-slate-300]="!descriptionInvalid"
+        [class.border-rose-400]="descriptionInvalid"
+      ></textarea>
+      @if (descriptionInvalid) {
+        <p class="text-xs text-rose-500">Descricao e obrigatoria.</p>
+      }
+    </div>
+
+    <!-- Acoes -->
+    <div class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-4">
+      <button
+        type="button"
+        (click)="onClear()"
+        class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+      >
+        Limpar
+      </button>
+      <button
+        type="submit"
+        [disabled]="loading"
+        class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50"
+      >
+        {{ loading ? 'Enviando...' : 'Criar solicitacao' }}
+      </button>
+    </div>
+  </form>
+</section>

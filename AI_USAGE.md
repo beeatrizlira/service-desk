@@ -35,6 +35,20 @@ Prompt principal que usei com a IA:
 - Ajuste feito: criei `FindTicketsQueryDto` com `@IsOptional()` + `@IsEnum()` e passei a usar `@Query() query: FindTicketsQueryDto` no `GET /tickets`.
 - Motivo: impedir valores inválidos de filtro e manter a validação consistente com os demais DTOs da API.
 
+### 5) Tailwind no frontend carregava, mas utilities não aplicavam
+- Sintoma: o CSS do Tailwind aparecia no DevTools, porém classes utilitárias do template (ex.: título vermelho e grande) não refletiam na tela.
+- Diagnóstico: a pipeline de PostCSS/Tailwind não estava sendo interpretada corretamente no build (diretivas do Tailwind permaneciam no CSS final sem gerar utilities usadas nos templates).
+- Ajuste feito:
+  - padronizei o estilo global em `src/styles.css`;
+  - adicionei `@source "./index.html"` e `@source "./app/**/*.{html,ts}"`;
+  - troquei a configuração para `.postcssrc.json` com `@tailwindcss/postcss`.
+- Resultado: após reiniciar o `ng serve` e limpar cache do Angular (`.angular`), as classes do Tailwind passaram a ser aplicadas normalmente.
+
+### 6) Ajustes importantes após o prompt do TicketForm (frontend)
+- O prompt inicial pedia redirecionar para `/board` após criar ticket, mas mudei o fluxo para ficar mais útil no estágio atual do projeto: ao criar com sucesso, o formulário é limpo e exibe toast de confirmação, mantendo o usuário na mesma tela.
+- Refatorei os componentes para separar template e lógica (`.html` e `.ts`), porque o markup cresceu e a manutenção ficou melhor do que manter template inline.
+- Depois de testar sem servidor, identifiquei um bug de UX (botão ficava em loading). Ajustei com `finalize` + `timeout` no submit e toast de erro com fechamento manual (`X`), cobrindo cenário offline e falhas da API.
+
 ## Exemplo onde a IA acelerou significativamente uma tarefa
 A maior aceleração foi na montagem do backend da Fase 1 em bloco (estrutura de arquivos + CRUD completo + configuração global do Nest).
 
