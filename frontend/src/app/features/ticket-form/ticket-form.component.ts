@@ -1,10 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, inject } from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, timeout, TimeoutError } from 'rxjs';
 import { TicketCategory } from '../../domain/models/ticket.model';
 import { TicketService } from '../../core/services/ticket.service';
@@ -14,22 +10,35 @@ import { TicketService } from '../../core/services/ticket.service';
   imports: [ReactiveFormsModule],
   templateUrl: './ticket-form.component.html',
 })
-export class TicketFormComponent implements OnDestroy {
+export class TicketFormComponent {
   private readonly fb = inject(FormBuilder);
   private readonly ticketService = inject(TicketService);
+  private readonly destroyRef = inject(DestroyRef);
+
   private successToastTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private errorToastTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private submitGuardTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  loading = false;
-  showSuccessToast = false;
-  showErrorToast = false;
-  errorMessage = '';
+  readonly loading = signal(false);
+  readonly showSuccessToast = signal(false);
+  readonly showErrorToast = signal(false);
+  readonly errorMessage = signal('');
 
   form = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
     category: ['' as TicketCategory | '', Validators.required],
     description: ['', Validators.required],
   });
+
+  constructor() {
+    this.resetUiState();
+
+    this.destroyRef.onDestroy(() => {
+      this.clearSuccessToastTimer();
+      this.clearErrorToastTimer();
+      this.clearSubmitGuard();
+    });
+  }
 
   get titleInvalid(): boolean {
     const c = this.form.get('title')!;
@@ -47,16 +56,19 @@ export class TicketFormComponent implements OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.loading) {
-      return;
-    }
+    if (this.loading()) return;
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.loading = true;
+    this.showSuccessToast.set(false);
+    this.showErrorToast.set(false);
+    this.errorMessage.set('');
+
+    this.loading.set(true);
+    this.startSubmitGuard();
     const { title, description, category } = this.form.getRawValue();
 
     this.ticketService
@@ -68,12 +80,13 @@ export class TicketFormComponent implements OnDestroy {
       .pipe(
         timeout(10000),
         finalize(() => {
-          this.loading = false;
+          this.clearSubmitGuard();
+          this.loading.set(false);
         }),
       )
       .subscribe({
         next: () => {
-          this.showErrorToast = false;
+          this.showErrorToast.set(false);
           this.onClear();
           this.openSuccessToast();
         },
@@ -84,51 +97,44 @@ export class TicketFormComponent implements OnDestroy {
   }
 
   onClear(): void {
-    this.form.reset({
-      title: '',
-      category: '',
-      description: '',
-    });
+    this.form.reset({ title: '', category: '', description: '' });
     this.form.markAsPristine();
     this.form.markAsUntouched();
   }
 
-  ngOnDestroy(): void {
+  closeErrorToast(): void {
+    this.showErrorToast.set(false);
+    this.clearErrorToastTimer();
+  }
+
+  private clearSuccessToastTimer(): void {
     if (this.successToastTimeoutId) {
       clearTimeout(this.successToastTimeoutId);
-    }
-
-    if (this.errorToastTimeoutId) {
-      clearTimeout(this.errorToastTimeoutId);
+      this.successToastTimeoutId = null;
     }
   }
 
   private openSuccessToast(): void {
-    if (this.successToastTimeoutId) {
-      clearTimeout(this.successToastTimeoutId);
-    }
-
-    this.showSuccessToast = true;
+    this.clearSuccessToastTimer();
+    this.showErrorToast.set(false);
+    this.errorMessage.set('');
+    this.showSuccessToast.set(true);
     this.successToastTimeoutId = setTimeout(() => {
-      this.showSuccessToast = false;
+      this.showSuccessToast.set(false);
       this.successToastTimeoutId = null;
     }, 3000);
   }
 
   private openErrorToast(message: string): void {
+    this.clearSuccessToastTimer();
     this.clearErrorToastTimer();
-
-    this.errorMessage = message;
-    this.showErrorToast = true;
+    this.showSuccessToast.set(false);
+    this.errorMessage.set(message);
+    this.showErrorToast.set(true);
     this.errorToastTimeoutId = setTimeout(() => {
-      this.showErrorToast = false;
+      this.showErrorToast.set(false);
       this.errorToastTimeoutId = null;
     }, 5000);
-  }
-
-  closeErrorToast(): void {
-    this.showErrorToast = false;
-    this.clearErrorToastTimer();
   }
 
   private clearErrorToastTimer(): void {
@@ -136,6 +142,29 @@ export class TicketFormComponent implements OnDestroy {
       clearTimeout(this.errorToastTimeoutId);
       this.errorToastTimeoutId = null;
     }
+  }
+
+  private startSubmitGuard(): void {
+    this.clearSubmitGuard();
+    this.submitGuardTimeoutId = setTimeout(() => {
+      if (!this.loading()) return;
+      this.loading.set(false);
+      this.openErrorToast('Nao foi possivel concluir a solicitacao. Tente novamente.');
+    }, 12000);
+  }
+
+  private clearSubmitGuard(): void {
+    if (this.submitGuardTimeoutId) {
+      clearTimeout(this.submitGuardTimeoutId);
+      this.submitGuardTimeoutId = null;
+    }
+  }
+
+  private resetUiState(): void {
+    this.loading.set(false);
+    this.showSuccessToast.set(false);
+    this.showErrorToast.set(false);
+    this.errorMessage.set('');
   }
 
   private getErrorMessage(error: unknown): string {

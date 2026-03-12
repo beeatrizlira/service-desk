@@ -1,0 +1,27 @@
+@import "tailwindcss";
+@source "./index.html";
+@source "./app/**/*.{html,ts}";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: #0f172a;
+  font-family:
+    "Manrope",
+    "Avenir Next",
+    "Segoe UI",
+    sans-serif;
+}
+
+::selection {
+  background: #cbd5e1;
+  color: #0f172a;
+}
