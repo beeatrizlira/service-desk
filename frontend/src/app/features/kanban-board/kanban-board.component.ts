@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
 import { TicketService } from '../../core/services/ticket.service';
 
@@ -17,6 +18,7 @@ export class KanbanBoardComponent {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly selectedTicket = signal<Ticket | null>(null);
+  readonly updatingTicketIds = signal<Set<number>>(new Set());
 
   readonly categoryFilter = signal<TicketCategory | null>(null);
   readonly statusFilter = signal<TicketStatus | null>(null);
@@ -101,9 +103,17 @@ export class KanbanBoardComponent {
   }
 
   updateStatus(ticket: Ticket, status: TicketStatus): void {
+    if (this.isUpdatingTicket(ticket.id)) return;
+
+    this.error.set(null);
+    this.setTicketUpdating(ticket.id, true);
+
     this.ticketService
       .updateStatus(ticket.id, status)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.setTicketUpdating(ticket.id, false)),
+      )
       .subscribe({
         next: (updated) => {
           this.tickets.update((all) => all.map((t) => (t.id === updated.id ? updated : t)));
@@ -111,7 +121,16 @@ export class KanbanBoardComponent {
             this.selectedTicket.set(updated);
           }
         },
+        error: () => {
+          this.error.set(
+            'Nao foi possivel atualizar o status do chamado. Verifique sua conexao e tente novamente.',
+          );
+        },
       });
+  }
+
+  isUpdatingTicket(ticketId: number): boolean {
+    return this.updatingTicketIds().has(ticketId);
   }
 
   openTicketDetails(ticket: Ticket): void {
@@ -120,5 +139,17 @@ export class KanbanBoardComponent {
 
   closeTicketDetails(): void {
     this.selectedTicket.set(null);
+  }
+
+  private setTicketUpdating(ticketId: number, updating: boolean): void {
+    this.updatingTicketIds.update((current) => {
+      const next = new Set(current);
+      if (updating) {
+        next.add(ticketId);
+      } else {
+        next.delete(ticketId);
+      }
+      return next;
+    });
   }
 }

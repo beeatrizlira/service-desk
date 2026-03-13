@@ -1,7 +1,7 @@
 # AI_USAGE.md
 
 ## Contexto
-Este backend (Fase 1) foi desenvolvido com apoio de IA para acelerar a implementação inicial, mas com revisão manual em cada arquivo antes de considerar pronto.
+Este projeto (Fase 1) foi desenvolvido com apoio de IA para acelerar a implementação inicial, mas com revisão manual em cada arquivo antes de considerar pronto.
 
 Prompt principal que usei com a IA:
 
@@ -12,6 +12,7 @@ Prompt principal que usei com a IA:
   - gerar o esqueleto inicial do módulo `tickets` (entity, enums, DTOs, service, controller e module);
   - sugerir configuração base do NestJS com TypeORM + SQLite;
   - acelerar a criação das assinaturas de métodos CRUD e filtros por query.
+  - apoiar a implementação e refinos de UI/UX do Kanban Board no frontend (filtros, ações de status, modal de detalhes e organização visual).
 
 ## Exemplos concretos em que precisei corrigir/ajustar a saída da IA
 
@@ -48,6 +49,17 @@ Prompt principal que usei com a IA:
 - O prompt inicial pedia redirecionar para `/board` após criar ticket, mas mudei o fluxo para ficar mais útil no estágio atual do projeto: ao criar com sucesso, o formulário é limpo e exibe toast de confirmação, mantendo o usuário na mesma tela.
 - Refatorei os componentes para separar template e lógica (`.html` e `.ts`), porque o markup cresceu e a manutenção ficou melhor do que manter template inline.
 - Depois de testar sem servidor, identifiquei um bug de UX (botão ficava em loading). Ajustei com `finalize` + `timeout` no submit e toast de erro com fechamento manual (`X`), cobrindo cenário offline e falhas da API.
+
+### 7) Implementação do Board (Kanban) e refinos pós-prompt
+- A IA ajudou a montar a primeira versão do quadro com colunas por status, filtros e atualização de status dos cards.
+- Em seguida, eu refinei com validação visual e foco em usabilidade:
+  - mantive o botão de atualizar com ícone de reload e estado de loading explícito;
+  - simplifiquei o bloco de filtros (sem informações redundantes) e mantive labels claros;
+  - padronizei a nomenclatura para "categoria" (em vez de "area"), alinhando com o enunciado;
+  - adicionei tratamento de erro na troca de status dos cards, com feedback visual e bloqueio de clique repetido durante a requisição;
+  - adicionei botão `Detalhes` em cada card e modal para leitura completa da descrição.
+- Também ajustei decisões de UI ao longo da revisão (ex.: remover card de contagem no topo para reduzir ruído visual).
+- Motivo: deixar o board mais claro para operação diária, sem perder ações principais (iniciar, concluir, cancelar, filtrar e consultar detalhes).
 
 ## Exemplo onde a IA acelerou significativamente uma tarefa
 A maior aceleração foi na montagem do backend da Fase 1 em bloco (estrutura de arquivos + CRUD completo + configuração global do Nest).

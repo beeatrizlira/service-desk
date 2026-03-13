@@ -19,7 +19,7 @@
       <label class="flex flex-col gap-1.5">
         <span class="text-xs font-medium text-slate-600">Categoria</span>
         <select [value]="categoryFilter() ?? ''" (change)="setCategoryFilter($any($event.target).value)" class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
-          <option value="">Todas as areas</option>
+          <option value="">Todas as categorias</option>
           <option value="TI">TI</option>
           <option value="RH">RH</option>
           <option value="INFRASTRUCTURE">Infraestrutura</option>
@@ -107,8 +107,8 @@
             <button type="button" (click)="openTicketDetails(ticket)" class="rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
               Detalhes
             </button>
-            <button type="button" (click)="updateStatus(ticket, TicketStatus.IN_PROGRESS)" class="rounded-lg border border-sky-200 bg-sky-50 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100">
-              Iniciar
+            <button type="button" (click)="updateStatus(ticket, TicketStatus.IN_PROGRESS)" [disabled]="isUpdatingTicket(ticket.id)" class="rounded-lg border border-sky-200 bg-sky-50 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60">
+              {{ isUpdatingTicket(ticket.id) ? 'Atualizando...' : 'Iniciar' }}
             </button>
           </div>
         </article>
@@ -135,10 +135,10 @@
             Detalhes
           </button>
           <div class="mt-2 flex gap-2">
-            <button type="button" (click)="updateStatus(ticket, TicketStatus.DONE)" class="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+            <button type="button" (click)="updateStatus(ticket, TicketStatus.DONE)" [disabled]="isUpdatingTicket(ticket.id)" class="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60">
               Concluir
             </button>
-            <button type="button" (click)="updateStatus(ticket, TicketStatus.CANCELLED)" class="flex-1 rounded-lg border border-rose-200 bg-rose-50 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100">
+            <button type="button" (click)="updateStatus(ticket, TicketStatus.CANCELLED)" [disabled]="isUpdatingTicket(ticket.id)" class="flex-1 rounded-lg border border-rose-200 bg-rose-50 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60">
               Cancelar
             </button>
           </div>

@@ -8,7 +8,7 @@
 | 2 | Existe controle de acesso? Colaborador e suporte são perfis distintos com login? | Autenticação básica com email + senha e JWT. Dois perfis: **colaborador** (abre e acompanha suas solicitações) e **suporte** (visualiza todas e gerencia status). Sem registro aberto — usuários criados via seed. |
 | 3 | Quais são os status possíveis de uma solicitação e qual o fluxo de transição? | Fluxo linear: Aberta → Em andamento → Concluída. Suporte também pode marcar como "Cancelada". |
 | 4 | O painel de acompanhamento é para o time de suporte, para os colaboradores, ou ambos? | Ambos, com visões diferentes. **Suporte:** Kanban board com todas as solicitações. **Colaborador:** lista das suas próprias solicitações com status atual. |
-| 5 | O painel precisa ter métricas específicas ou um overview geral é suficiente? | Overview operacional para o suporte: visualização das solicitações organizadas por status (estilo Kanban), com contadores por status e categoria. |
+| 5 | O painel precisa ter métricas específicas ou um overview geral é suficiente? | Overview operacional para o suporte: visualização das solicitações organizadas por status (estilo Kanban), com contadores por status e filtros por categoria. |
 | 6 | Existe SLA ou prioridade nas solicitações? | Não no MVP. Todas as solicitações têm a mesma prioridade. Prioridade fica como melhoria futura. |
 | 7 | Solicitações podem ter anexos (prints, documentos)? | Não no MVP. Apenas texto (título + descrição). |
 | 8 | O colaborador pode editar ou cancelar uma solicitação após aberta? | Não. Após criada, apenas o suporte interage com a solicitação. |
@@ -25,7 +25,7 @@ A entrega segue uma estratégia incremental em duas fases, priorizando um sistem
 - Formulário para abrir solicitação (título, descrição, categoria)
 - Visão do suporte estilo Kanban board — colunas por status (Aberta, Em Andamento, Concluída, Cancelada) com cards
 - Mudança de status via clique no card
-- Dashboard com contadores por status e por categoria
+- Dashboard com contadores por status e filtros por categoria
 - Persistência com SQLite (zero config para rodar local)
 
 ### Fase 2 — Incrementos (se houver tempo)
