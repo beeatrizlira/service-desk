@@ -1,77 +1,91 @@
 # AI_USAGE.md
 
 ## Contexto
-Este projeto (Fase 1) foi desenvolvido com apoio de IA para acelerar a implementação inicial, mas com revisão manual em cada arquivo antes de considerar pronto.
+Usei IA como acelerador de implementacao no backend e frontend do MVP, mas com revisao manual em cada etapa. O foco foi reduzir tempo de codigo repetitivo e manter controle tecnico nas decisoes.
 
-Prompt principal que usei com a IA:
+## Ferramentas de IA utilizadas
+- Codex/Claude Code no terminal:
+  - geracao inicial de estrutura do backend NestJS (entity, DTOs, service, controller, module, TypeORM);
+  - geracao inicial de componentes do frontend Angular (formulario, board, servico HTTP, rotas);
+  - apoio na criacao e ajuste de testes.
+- Chat com IA:
+  - refinamento de prompts por etapa;
+  - analise de bugs de runtime/UX;
+  - revisao de mensagens de commit e criterio de entrega.
 
-> Leia o arquivo PLANNING.md na raiz do projeto. Implemente o backend (Fase 1) do sistema de gestão de solicitações com NestJS + TypeORM + SQLite. Siga esta ordem: 1) TypeORM no app.module.ts, 2) enums, 3) entity Ticket, 4) DTOs com class-validator, 5) TicketsService, 6) TicketsController, 7) TicketsModule, 8) main.ts com prefixo /api, CORS e ValidationPipe. Use simple-enum no TypeORM (compatibilidade com SQLite). Cada arquivo em sua pasta dentro de src/tickets/.
+## Como eu usei os prompts
+Em vez de um prompt unico, quebrei em blocos pequenos e verificaveis. Exemplos reais que usei:
 
-## Ferramenta de IA utilizada e tarefas
-- Claude code (assistente de código):
-  - gerar o esqueleto inicial do módulo `tickets` (entity, enums, DTOs, service, controller e module);
-  - sugerir configuração base do NestJS com TypeORM + SQLite;
-  - acelerar a criação das assinaturas de métodos CRUD e filtros por query.
-  - apoiar a implementação e refinos de UI/UX do Kanban Board no frontend (filtros, ações de status, modal de detalhes e organização visual).
+1. Backend Fase 1 completo (NestJS + TypeORM + SQLite) com ordem de implementacao definida.
+2. Validacao de query de `GET /tickets` via `FindTicketsQueryDto`.
+3. Frontend por etapas: models/service, depois rotas/navbar, depois TicketForm, depois Board.
+4. Refinos de UX apos teste manual: feedback de erro, loading, toasts, filtros e modal de detalhes.
 
-## Exemplos concretos em que precisei corrigir/ajustar a saída da IA
+Essa estrategia evitou retrabalho grande e facilitou validar cada passo com commit pequeno.
 
-### 1) Compatibilidade de enum no SQLite (TypeORM)
-- O ponto de atenção era usar `simple-enum` (não `enum`) para evitar incompatibilidade com SQLite.
-- Revisão feita: confirmei e ajustei os campos `category` e `status` da entidade para `type: 'simple-enum'`.
-- Motivo: no SQLite, `enum` costuma gerar comportamento inconsistente dependendo da versão/driver; `simple-enum` é a opção segura nesse cenário.
+## Exemplos concretos onde corrigi a saida da IA
 
-### 2) Semântica HTTP no endpoint de remoção
-- A implementação inicial do `DELETE` estava funcional, mas sem garantir resposta sem corpo.
-- Ajuste feito: adição de `@HttpCode(HttpStatus.NO_CONTENT)` no `DELETE /tickets/:id`.
-- Motivo: alinhar com prática REST (204 para deleção bem-sucedida sem payload).
+### 1) Validacao de filtros no backend (status/category)
+- Saida inicial da IA:
+  - leitura de query como string crua no controller.
+- Problema:
+  - aceitava valores invalidos e quebrava consistencia de validacao.
+- Correcao aplicada:
+  - criei `FindTicketsQueryDto` com `@IsOptional()` + `@IsEnum()` e passei a usar `@Query() query`.
+- Motivo tecnico:
+  - centralizar validacao em DTO e manter contrato forte da API.
 
-### 3) Validação de entrada mais restritiva
-- A IA gerou os DTOs, mas eu revisei para garantir regras de negócio do enunciado (ex.: título obrigatório e máximo de 200 caracteres).
-- Ajuste feito: reforço com `@IsNotEmpty()` e `@MaxLength(200)` no `CreateTicketDto`, além de `@IsEnum(...)` para `category` e `status`.
-- Motivo: evitar aceitar payload inválido e reduzir erro em runtime.
+### 2) Tailwind carregava, mas classes nao aplicavam no Angular
+- Saida inicial da IA:
+  - configuracao incompleta da pipeline de estilos.
+- Problema observado:
+  - CSS do Tailwind aparecia no DevTools, mas utilitarios nao refletiam na tela.
+- Correcao aplicada:
+  - ajuste da configuracao PostCSS para `@tailwindcss/postcss`;
+  - ajuste do arquivo global de estilos com `@source` para `index.html` e templates em `app/**/*.{html,ts}`;
+  - restart do servidor e limpeza de cache do Angular.
+- Motivo tecnico:
+  - sem a configuracao correta, o build nao gerava/utilizava os utilitarios esperados.
 
-### 4) Validação de query no GET /tickets (ajuste posterior)
-- Inicialmente, os filtros `status` e `category` eram lidos como query string direta no controller.
-- Ajuste feito: criei `FindTicketsQueryDto` com `@IsOptional()` + `@IsEnum()` e passei a usar `@Query() query: FindTicketsQueryDto` no `GET /tickets`.
-- Motivo: impedir valores inválidos de filtro e manter a validação consistente com os demais DTOs da API.
+### 3) Submit do formulario ficava travado sem API
+- Saida inicial da IA:
+  - fluxo de submit sem cobertura robusta para timeout/offline.
+- Problema observado:
+  - botao ficava em loading e usuario sem feedback quando o backend estava offline.
+- Correcao aplicada:
+  - adicionei `timeout` + `finalize` no fluxo de submit;
+  - adicionei toast de erro com mensagem especifica para `status=0` (sem conexao);
+  - adicionei botao `X` para fechar toast manualmente.
+- Motivo tecnico:
+  - garantir recuperacao de estado da UI em qualquer falha de rede.
 
-### 5) Tailwind no frontend carregava, mas utilities não aplicavam
-- Sintoma: o CSS do Tailwind aparecia no DevTools, porém classes utilitárias do template (ex.: título vermelho e grande) não refletiam na tela.
-- Diagnóstico: a pipeline de PostCSS/Tailwind não estava sendo interpretada corretamente no build (diretivas do Tailwind permaneciam no CSS final sem gerar utilities usadas nos templates).
-- Ajuste feito:
-  - padronizei o estilo global em `src/styles.css`;
-  - adicionei `@source "./index.html"` e `@source "./app/**/*.{html,ts}"`;
-  - troquei a configuração para `.postcssrc.json` com `@tailwindcss/postcss`.
-- Resultado: após reiniciar o `ng serve` e limpar cache do Angular (`.angular`), as classes do Tailwind passaram a ser aplicadas normalmente.
+### 4) Ajuste de escopo de testes gerados pela IA
+- Saida inicial da IA:
+  - sugestoes de e2e alem do que eu tinha pedido naquele momento.
+- Problema:
+  - desviava do escopo imediato e do objetivo de entrega incremental.
+- Correcao aplicada:
+  - priorizei testes de unidade/controller no backend e testes de componente no frontend;
+  - deixei e2e como complemento, nao como bloqueador.
+- Motivo tecnico:
+  - maximizar cobertura util no tempo do teste tecnico.
 
-### 6) Ajustes importantes após o prompt do TicketForm (frontend)
-- O prompt inicial pedia redirecionar para `/board` após criar ticket, mas mudei o fluxo para ficar mais útil no estágio atual do projeto: ao criar com sucesso, o formulário é limpo e exibe toast de confirmação, mantendo o usuário na mesma tela.
-- Refatorei os componentes para separar template e lógica (`.html` e `.ts`), porque o markup cresceu e a manutenção ficou melhor do que manter template inline.
-- Depois de testar sem servidor, identifiquei um bug de UX (botão ficava em loading). Ajustei com `finalize` + `timeout` no submit e toast de erro com fechamento manual (`X`), cobrindo cenário offline e falhas da API.
+## Exemplo onde a IA acelerou significativamente
+Maior ganho: bootstrap da Fase 1 do backend.
 
-### 7) Implementação do Board (Kanban) e refinos pós-prompt
-- A IA ajudou a montar a primeira versão do quadro com colunas por status, filtros e atualização de status dos cards.
-- Em seguida, eu refinei com validação visual e foco em usabilidade:
-  - mantive o botão de atualizar com ícone de reload e estado de loading explícito;
-  - simplifiquei o bloco de filtros (sem informações redundantes) e mantive labels claros;
-  - padronizei a nomenclatura para "categoria" (em vez de "area"), alinhando com o enunciado;
-  - adicionei tratamento de erro na troca de status dos cards, com feedback visual e bloqueio de clique repetido durante a requisição;
-  - adicionei botão `Detalhes` em cada card e modal para leitura completa da descrição.
-- Também ajustei decisões de UI ao longo da revisão (ex.: remover card de contagem no topo para reduzir ruído visual).
-- Motivo: deixar o board mais claro para operação diária, sem perder ações principais (iniciar, concluir, cancelar, filtrar e consultar detalhes).
+- Sem IA:
+  - estimativa de ~2h a ~3h para montar estrutura completa com CRUD, DTOs e validacoes.
+- Com IA:
+  - primeira versao funcional em ~45-60 min.
+- Resultado:
+  - sobrou tempo para revisao critica, ajustes de UX no frontend e ampliacao de testes.
 
-## Exemplo onde a IA acelerou significativamente uma tarefa
-A maior aceleração foi na montagem do backend da Fase 1 em bloco (estrutura de arquivos + CRUD completo + configuração global do Nest).
+## Senso critico aplicado (como revisei o output)
+- Conferi aderencia ao `PLANNING.md` antes de aceitar qualquer trecho.
+- Testei fluxos reais no navegador (inclusive cenarios de erro/offline).
+- Ajustei nomenclatura para aderir ao enunciado (`categoria` em vez de `area`).
+- Priorizei experiencia do usuario quando output da IA ficava tecnicamente correto, mas ruim de uso.
+- Mantive historico de commits incremental, sem squash unico, para demonstrar evolucao e revisoes.
 
-- Sem IA: eu estimaria ~2h a ~3h para montar tudo do zero com o mesmo nível de organização.
-- Com IA: cheguei a uma primeira versão funcional em ~40-60 min, ficando o restante do tempo para revisão, ajustes finos e validação.
-
-## Como mantive senso crítico
-Eu usei a IA como acelerador de implementação, não como fonte final de verdade. A cada trecho gerado, revisei:
-- aderência ao enunciado do teste;
-- compatibilidade técnica com SQLite/TypeORM;
-- semântica de API (status codes, validação e tratamento de erro);
-- build e testes básicos do backend.
-
-Resumo: o ganho foi real em velocidade, mas a qualidade final veio da revisão manual e dos ajustes feitos após a geração inicial.
+## Conclusao
+A IA acelerou bastante a execucao, principalmente no codigo repetitivo e no scaffolding inicial. A qualidade final veio da revisao manual, validacao de comportamento real e correcoes tecnicas apos cada iteracao.
