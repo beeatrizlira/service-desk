@@ -49,8 +49,11 @@ export class TicketsController {
   }
 
   @Get('me')
-  findMine(@Req() req: Request & { user?: RequestUser }) {
-    return this.ticketsService.findMine(req.user?.id ?? 0);
+  findMine(
+    @Req() req: Request & { user?: RequestUser },
+    @Query() query: FindTicketsQueryDto,
+  ) {
+    return this.ticketsService.findMine(req.user?.id ?? 0, query);
   }
 
   @Get(':id')
