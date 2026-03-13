@@ -8,6 +8,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { TicketCategory } from './enums/ticket-category.enum';
+import { TicketPeriod } from './enums/ticket-period.enum';
 import { TicketStatus } from './enums/ticket-status.enum';
 import { TicketsController } from './tickets.controller';
 import { TicketsService } from './tickets.service';
@@ -157,6 +158,14 @@ describe('TicketsController (HTTP)', () => {
     expect(ticketsServiceMock.findAll).not.toHaveBeenCalled();
   });
 
+  it('GET /tickets should return 400 when period enum is invalid', async () => {
+    await withAuth(request(httpServer()).get('/tickets'))
+      .query({ period: '90d' })
+      .expect(400);
+
+    expect(ticketsServiceMock.findAll).not.toHaveBeenCalled();
+  });
+
   it('GET /tickets should pass valid status and category filters to service', async () => {
     ticketsServiceMock.findAll.mockResolvedValue([]);
 
@@ -178,8 +187,39 @@ describe('TicketsController (HTTP)', () => {
       request(httpServer()).get('/tickets/me'),
     ).expect(200);
 
-    expect(ticketsServiceMock.findMine).toHaveBeenCalledWith(1);
+    expect(ticketsServiceMock.findMine).toHaveBeenCalledTimes(1);
+    expect(ticketsServiceMock.findMine.mock.calls[0]?.[0]).toBe(1);
     expect(response.body).toHaveLength(1);
+  });
+
+  it('GET /tickets/me should pass q, status and category filters to service', async () => {
+    ticketsServiceMock.findMine.mockResolvedValue([]);
+
+    await withAuth(request(httpServer()).get('/tickets/me'))
+      .query({
+        q: 'erp',
+        status: TicketStatus.OPEN,
+        category: TicketCategory.TI,
+      })
+      .expect(200);
+
+    expect(ticketsServiceMock.findMine).toHaveBeenCalledWith(1, {
+      q: 'erp',
+      status: TicketStatus.OPEN,
+      category: TicketCategory.TI,
+    });
+  });
+
+  it('GET /tickets/me should pass period filter to service', async () => {
+    ticketsServiceMock.findMine.mockResolvedValue([]);
+
+    await withAuth(request(httpServer()).get('/tickets/me'))
+      .query({ period: TicketPeriod.LAST_30_DAYS })
+      .expect(200);
+
+    expect(ticketsServiceMock.findMine).toHaveBeenCalledWith(1, {
+      period: TicketPeriod.LAST_30_DAYS,
+    });
   });
 
   it('GET /tickets/:id should return 400 when id is not numeric', async () => {

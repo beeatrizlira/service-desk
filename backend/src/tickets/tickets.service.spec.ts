@@ -5,6 +5,7 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { Ticket } from './entities/ticket.entity';
 import { TicketCategory } from './enums/ticket-category.enum';
+import { TicketPeriod } from './enums/ticket-period.enum';
 import { TicketStatus } from './enums/ticket-status.enum';
 import { TicketsService } from './tickets.service';
 
@@ -12,11 +13,21 @@ const mockRepository = () => ({
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
+  createQueryBuilder: jest.fn(),
   findOneBy: jest.fn(),
   remove: jest.fn(),
 });
 
 type MockRepository = ReturnType<typeof mockRepository>;
+
+const mockQueryBuilder = () => ({
+  where: jest.fn().mockReturnThis(),
+  andWhere: jest.fn().mockReturnThis(),
+  orderBy: jest.fn().mockReturnThis(),
+  getMany: jest.fn(),
+});
+
+type MockQueryBuilder = ReturnType<typeof mockQueryBuilder>;
 
 const makeTicket = (overrides: Partial<Ticket> = {}): Ticket =>
   ({
@@ -143,6 +154,39 @@ describe('TicketsService', () => {
       });
       expect(result).toEqual(tickets);
     });
+
+    it('should use query builder and search by title, description or id when q is provided', async () => {
+      const tickets = [makeTicket({ id: 12, title: 'Erro no ERP' })];
+      const qb: MockQueryBuilder = mockQueryBuilder();
+      qb.getMany.mockResolvedValue(tickets);
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findAll({ q: 'erp' });
+
+      expect(repo.createQueryBuilder).toHaveBeenCalledWith('ticket');
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        '(LOWER(ticket.title) LIKE :search OR LOWER(ticket.description) LIKE :search OR CAST(ticket.id AS TEXT) LIKE :search)',
+        { search: '%erp%' },
+      );
+      expect(qb.orderBy).toHaveBeenCalledWith('ticket.createdAt', 'DESC');
+      expect(result).toEqual(tickets);
+    });
+
+    it('should use query builder and apply createdAt period filter when period is provided', async () => {
+      const tickets = [makeTicket({ id: 9 })];
+      const qb: MockQueryBuilder = mockQueryBuilder();
+      qb.getMany.mockResolvedValue(tickets);
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findAll({ period: TicketPeriod.LAST_7_DAYS });
+
+      expect(repo.createQueryBuilder).toHaveBeenCalledWith('ticket');
+      expect(qb.andWhere).toHaveBeenCalledWith('ticket.createdAt >= :fromDate', {
+        fromDate: expect.any(Date),
+      });
+      expect(qb.orderBy).toHaveBeenCalledWith('ticket.createdAt', 'DESC');
+      expect(result).toEqual(tickets);
+    });
   });
 
   describe('findMine', () => {
@@ -159,6 +203,43 @@ describe('TicketsService', () => {
         where: { userId: 7 },
         order: { createdAt: 'DESC' },
       });
+      expect(result).toEqual(tickets);
+    });
+
+    it('should apply q search for the provided user when q is informed', async () => {
+      const tickets = [makeTicket({ id: 21, userId: 7, title: 'Notebook com problema' })];
+      const qb: MockQueryBuilder = mockQueryBuilder();
+      qb.getMany.mockResolvedValue(tickets);
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findMine(7, { q: 'note' });
+
+      expect(repo.createQueryBuilder).toHaveBeenCalledWith('ticket');
+      expect(qb.where).toHaveBeenCalledWith('ticket.userId = :userId', { userId: 7 });
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        '(LOWER(ticket.title) LIKE :search OR LOWER(ticket.description) LIKE :search OR CAST(ticket.id AS TEXT) LIKE :search)',
+        { search: '%note%' },
+      );
+      expect(qb.orderBy).toHaveBeenCalledWith('ticket.createdAt', 'DESC');
+      expect(result).toEqual(tickets);
+    });
+
+    it('should apply period filter for the provided user when period is informed', async () => {
+      const tickets = [makeTicket({ id: 22, userId: 7 })];
+      const qb: MockQueryBuilder = mockQueryBuilder();
+      qb.getMany.mockResolvedValue(tickets);
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findMine(7, {
+        period: TicketPeriod.LAST_30_DAYS,
+      });
+
+      expect(repo.createQueryBuilder).toHaveBeenCalledWith('ticket');
+      expect(qb.where).toHaveBeenCalledWith('ticket.userId = :userId', { userId: 7 });
+      expect(qb.andWhere).toHaveBeenCalledWith('ticket.createdAt >= :fromDate', {
+        fromDate: expect.any(Date),
+      });
+      expect(qb.orderBy).toHaveBeenCalledWith('ticket.createdAt', 'DESC');
       expect(result).toEqual(tickets);
     });
   });
