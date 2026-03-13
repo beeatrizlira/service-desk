@@ -1,18 +1,26 @@
-<div class="min-h-screen bg-white">
-  <header class="border-b border-slate-200 bg-white">
-    <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-      <h1 class="text-lg font-semibold text-slate-900">Service Desk</h1>
+<div class="min-h-screen bg-slate-50">
+  <header class="border-b border-slate-200/80 bg-white/95 backdrop-blur">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3">
+        <div
+          class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white"
+        >
+          SD
+        </div>
+        <div class="leading-tight">
+          <h1 class="text-lg font-semibold text-slate-900">Service Desk</h1>
+          <p class="text-xs text-slate-500">Atendimento interno</p>
+        </div>
+      </div>
+
       <div class="flex items-center gap-2">
         @if (session(); as currentSession) {
           @if (currentSession.user.role === UserRole.SUPPORT) {
-            <a
-              routerLink="/board"
-              routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
-              [routerLinkActiveOptions]="{ exact: true }"
-              class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            <span
+              class="hidden rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 sm:inline-flex"
             >
-              Board
-            </a>
+              Time de Suporte
+            </span>
           } @else {
             <a
               routerLink="/tickets/new"
@@ -29,13 +37,14 @@
               Minhas Solicitacoes
             </a>
           }
-          <span class="hidden text-xs text-slate-500 sm:inline">{{
-            currentSession.user.name
-          }}</span>
+          <span
+            class="hidden rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600 sm:inline-flex"
+            >{{ currentSession.user.name }}</span
+          >
           <button
             type="button"
             (click)="logout()"
-            class="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
           >
             Sair
           </button>

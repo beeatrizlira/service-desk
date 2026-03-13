@@ -39,14 +39,19 @@
     <!-- Categoria -->
     <div class="space-y-2">
       <label for="ticket-category" class="text-sm font-semibold text-slate-700">Categoria</label>
-      <select id="ticket-category" formControlName="category" class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-200" [class.border-slate-300]="!categoryInvalid" [class.border-rose-400]="categoryInvalid">
-        <option value="">Selecione</option>
-        <option value="TI">TI</option>
-        <option value="RH">RH</option>
-        <option value="INFRASTRUCTURE">Infraestrutura</option>
-        <option value="FINANCIAL">Financeiro</option>
-        <option value="OTHER">Outros</option>
-      </select>
+      <div class="relative">
+        <select id="ticket-category" formControlName="category" class="w-full appearance-none rounded-xl border bg-white pl-4 pr-12 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-200" [class.border-slate-300]="!categoryInvalid" [class.border-rose-400]="categoryInvalid">
+          <option value="">Selecione</option>
+          <option value="TI">TI</option>
+          <option value="RH">RH</option>
+          <option value="INFRASTRUCTURE">Infraestrutura</option>
+          <option value="FINANCIAL">Financeiro</option>
+          <option value="OTHER">Outros</option>
+        </select>
+        <svg class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
       @if (categoryInvalid) {
       <p class="text-xs text-rose-500">Categoria é obrigatoria.</p>
       }
