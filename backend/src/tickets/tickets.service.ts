@@ -35,6 +35,13 @@ export class TicketsService {
     return this.ticketRepository.find({ where, order: { createdAt: 'DESC' } });
   }
 
+  findMine(userId: number): Promise<Ticket[]> {
+    return this.ticketRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findOne(id: number): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOneBy({ id });
     if (!ticket) throw new NotFoundException(`Ticket #${id} not found`);

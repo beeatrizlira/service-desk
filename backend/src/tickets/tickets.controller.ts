@@ -39,6 +39,11 @@ export class TicketsController {
     return this.ticketsService.findAll(query);
   }
 
+  @Get('me')
+  findMine(@Req() req: Request & { user?: RequestUser }) {
+    return this.ticketsService.findMine(req.user?.id ?? 0);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.ticketsService.findOne(id);

@@ -35,6 +35,7 @@ describe('TicketsController (HTTP)', () => {
   const ticketsServiceMock = {
     create: jest.fn(),
     findAll: jest.fn(),
+    findMine: jest.fn(),
     findOne: jest.fn(),
     updateStatus: jest.fn(),
     remove: jest.fn(),
@@ -143,6 +144,18 @@ describe('TicketsController (HTTP)', () => {
       status: TicketStatus.OPEN,
       category: TicketCategory.TI,
     });
+  });
+
+  it('GET /tickets/me should return current user tickets', async () => {
+    const myTickets = [makeTicket()];
+    ticketsServiceMock.findMine.mockResolvedValue(myTickets);
+
+    const response = await withAuth(
+      request(httpServer()).get('/tickets/me'),
+    ).expect(200);
+
+    expect(ticketsServiceMock.findMine).toHaveBeenCalledWith(1);
+    expect(response.body).toHaveLength(1);
   });
 
   it('GET /tickets/:id should return 400 when id is not numeric', async () => {

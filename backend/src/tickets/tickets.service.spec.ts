@@ -145,6 +145,24 @@ describe('TicketsService', () => {
     });
   });
 
+  describe('findMine', () => {
+    it('should return only tickets from the provided user ordered by createdAt DESC', async () => {
+      const tickets = [
+        makeTicket({ id: 5, userId: 7 }),
+        makeTicket({ id: 3, userId: 7 }),
+      ];
+      repo.find.mockResolvedValue(tickets);
+
+      const result = await service.findMine(7);
+
+      expect(repo.find).toHaveBeenCalledWith({
+        where: { userId: 7 },
+        order: { createdAt: 'DESC' },
+      });
+      expect(result).toEqual(tickets);
+    });
+  });
+
   describe('findOne', () => {
     it('should return the ticket when a valid ID is provided', async () => {
       const ticket = makeTicket();
