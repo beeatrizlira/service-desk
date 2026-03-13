@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
-import { TicketService } from '../../core/services/ticket.service';
+import { TicketPeriodFilter, TicketService } from '../../core/services/ticket.service';
 
 @Component({
   selector: 'app-my-tickets',
@@ -12,18 +12,26 @@ import { TicketService } from '../../core/services/ticket.service';
 export class MyTicketsComponent {
   private readonly ticketService = inject(TicketService);
   private readonly destroyRef = inject(DestroyRef);
+  private searchDebounceId: ReturnType<typeof setTimeout> | null = null;
 
   readonly tickets = signal<Ticket[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly statusFilter = signal<TicketStatus | null>(null);
+  readonly searchTerm = signal('');
+  readonly periodFilter = signal<TicketPeriodFilter | null>(null);
 
   readonly filteredTickets = computed(() => {
     const status = this.statusFilter();
     return this.tickets().filter((ticket) => !status || ticket.status === status);
   });
 
-  readonly hasActiveFilters = computed(() => this.statusFilter() !== null);
+  readonly hasActiveFilters = computed(
+    () =>
+      this.statusFilter() !== null ||
+      this.periodFilter() !== null ||
+      this.searchTerm().trim().length > 0,
+  );
 
   readonly openCount = computed(
     () => this.tickets().filter((ticket) => ticket.status === TicketStatus.OPEN).length,
@@ -55,6 +63,7 @@ export class MyTicketsComponent {
   };
 
   constructor() {
+    this.destroyRef.onDestroy(() => this.clearSearchDebounce());
     this.loadMyTickets();
   }
 
@@ -63,7 +72,10 @@ export class MyTicketsComponent {
     this.error.set(null);
 
     this.ticketService
-      .getMyTickets()
+      .getMyTickets({
+        q: this.searchTerm().trim() || undefined,
+        period: this.periodFilter() ?? undefined,
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (tickets) => {
@@ -81,8 +93,26 @@ export class MyTicketsComponent {
     this.statusFilter.set((value as TicketStatus) || null);
   }
 
+  setPeriodFilter(value: string): void {
+    this.periodFilter.set((value as TicketPeriodFilter) || null);
+    this.loadMyTickets();
+  }
+
   clearFilters(): void {
+    const shouldReload = this.searchTerm() !== '' || this.periodFilter() !== null;
     this.statusFilter.set(null);
+    this.periodFilter.set(null);
+    if (this.searchTerm() !== '') {
+      this.searchTerm.set('');
+    }
+    if (shouldReload) {
+      this.loadMyTickets();
+    }
+  }
+
+  setSearchTerm(value: string): void {
+    this.searchTerm.set(value);
+    this.scheduleSearch();
   }
 
   statusBadgeClass(status: TicketStatus): string {
@@ -98,5 +128,22 @@ export class MyTicketsComponent {
       default:
         return 'border-slate-200 bg-slate-100 text-slate-700';
     }
+  }
+
+  private scheduleSearch(): void {
+    this.clearSearchDebounce();
+    this.searchDebounceId = setTimeout(() => {
+      this.searchDebounceId = null;
+      this.loadMyTickets();
+    }, 300);
+  }
+
+  private clearSearchDebounce(): void {
+    if (!this.searchDebounceId) {
+      return;
+    }
+
+    clearTimeout(this.searchDebounceId);
+    this.searchDebounceId = null;
   }
 }
