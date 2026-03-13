@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -14,6 +15,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { UserRole } from '../auth/enums/user-role.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RequestUser } from '../auth/types/request-user.type';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -31,7 +33,14 @@ export class TicketsController {
     @Body() dto: CreateTicketDto,
     @Req() req: Request & { user?: RequestUser },
   ) {
-    return this.ticketsService.create(dto, req.user?.id ?? null);
+    const user = req.user;
+    if (!user || user.role !== UserRole.COLLABORATOR) {
+      throw new ForbiddenException(
+        'Only collaborators can create support tickets',
+      );
+    }
+
+    return this.ticketsService.create(dto, user.id);
   }
 
   @Get()

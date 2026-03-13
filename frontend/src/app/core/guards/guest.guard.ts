@@ -16,5 +16,5 @@ export const guestGuard: CanActivateFn = () => {
     return router.parseUrl('/board');
   }
 
-  return router.parseUrl('/tickets/new');
+  return router.parseUrl('/my-tickets');
 };

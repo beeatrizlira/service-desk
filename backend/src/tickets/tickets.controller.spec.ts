@@ -26,6 +26,7 @@ const makeTicket = () => ({
 describe('TicketsController (HTTP)', () => {
   let app: INestApplication;
   let authHeader: string;
+  let supportAuthHeader: string;
 
   const httpServer = (): Parameters<typeof request>[0] =>
     app.getHttpServer() as unknown as Parameters<typeof request>[0];
@@ -66,6 +67,13 @@ describe('TicketsController (HTTP)', () => {
       email: 'colaborador@service-desk.local',
       role: UserRole.COLLABORATOR,
       name: 'Ana Colaboradora',
+    })}`;
+
+    supportAuthHeader = `Bearer ${await jwtService.signAsync({
+      sub: 2,
+      email: 'suporte@service-desk.local',
+      role: UserRole.SUPPORT,
+      name: 'Caio Suporte',
     })}`;
 
     app = moduleRef.createNestApplication();
@@ -113,6 +121,22 @@ describe('TicketsController (HTTP)', () => {
         category: TicketCategory.TI,
       })
       .expect(400);
+
+    expect(ticketsServiceMock.create).not.toHaveBeenCalled();
+  });
+
+  it('POST /tickets should return 403 when user role is support', async () => {
+    const payload = {
+      title: 'Problema no sistema',
+      description: 'Nao consigo acessar o ERP',
+      category: TicketCategory.TI,
+    };
+
+    await request(httpServer())
+      .post('/tickets')
+      .set('Authorization', supportAuthHeader)
+      .send(payload)
+      .expect(403);
 
     expect(ticketsServiceMock.create).not.toHaveBeenCalled();
   });

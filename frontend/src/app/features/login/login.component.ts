@@ -58,7 +58,7 @@ export class LoginComponent {
             void this.router.navigateByUrl('/board');
             return;
           }
-          void this.router.navigateByUrl('/tickets/new');
+          void this.router.navigateByUrl('/my-tickets');
         },
         error: (error: unknown) => {
           this.errorMessage.set(this.getErrorMessage(error));

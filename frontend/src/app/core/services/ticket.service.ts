@@ -28,6 +28,10 @@ export class TicketService {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
   }
 
+  getMyTickets(): Observable<Ticket[]> {
+    return this.http.get<Ticket[]>(`${this.baseUrl}/me`);
+  }
+
   createTicket(data: CreateTicketData): Observable<Ticket> {
     return this.http.post<Ticket>(this.baseUrl, data);
   }

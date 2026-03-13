@@ -19,8 +19,16 @@ export const routes: Routes = [
       import('./features/kanban-board/kanban-board.component').then((m) => m.KanbanBoardComponent),
   },
   {
+    path: 'my-tickets',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [UserRole.COLLABORATOR] },
+    loadComponent: () =>
+      import('./features/my-tickets/my-tickets.component').then((m) => m.MyTicketsComponent),
+  },
+  {
     path: 'tickets/new',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [UserRole.COLLABORATOR] },
     loadComponent: () =>
       import('./features/ticket-form/ticket-form.component').then((m) => m.TicketFormComponent),
   },

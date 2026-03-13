@@ -4,13 +4,6 @@
       <h1 class="text-lg font-semibold text-slate-900">Service Desk</h1>
       <div class="flex items-center gap-2">
         @if (session(); as currentSession) {
-          <a
-            routerLink="/tickets/new"
-            routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
-            class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
-          >
-            Nova Solicitacao
-          </a>
           @if (currentSession.user.role === UserRole.SUPPORT) {
             <a
               routerLink="/board"
@@ -19,6 +12,21 @@
               class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Board
+            </a>
+          } @else {
+            <a
+              routerLink="/tickets/new"
+              routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+              class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Nova Solicitacao
+            </a>
+            <a
+              routerLink="/my-tickets"
+              routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+              class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Minhas Solicitacoes
             </a>
           }
           <span class="hidden text-xs text-slate-500 sm:inline">{{
