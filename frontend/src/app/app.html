@@ -3,12 +3,43 @@
     <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
       <h1 class="text-lg font-semibold text-slate-900">Service Desk</h1>
       <div class="flex items-center gap-2">
-        <a routerLink="/tickets/new" routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white" class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">
-          Nova Solicitacao
-        </a>
-        <a routerLink="/board" routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white" [routerLinkActiveOptions]="{ exact: true }" class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">
-          Board
-        </a>
+        @if (session(); as currentSession) {
+          <a
+            routerLink="/tickets/new"
+            routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+            class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+          >
+            Nova Solicitacao
+          </a>
+          @if (currentSession.user.role === UserRole.SUPPORT) {
+            <a
+              routerLink="/board"
+              routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Board
+            </a>
+          }
+          <span class="hidden text-xs text-slate-500 sm:inline">{{
+            currentSession.user.name
+          }}</span>
+          <button
+            type="button"
+            (click)="logout()"
+            class="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          >
+            Sair
+          </button>
+        } @else {
+          <a
+            routerLink="/login"
+            routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+            class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+          >
+            Entrar
+          </a>
+        }
       </div>
     </nav>
   </header>
