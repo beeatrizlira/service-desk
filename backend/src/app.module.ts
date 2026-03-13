@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { Ticket } from './tickets/entities/ticket.entity';
 import { TicketsModule } from './tickets/tickets.module';
 
@@ -13,6 +14,7 @@ import { TicketsModule } from './tickets/tickets.module';
       entities: [Ticket],
       synchronize: true,
     }),
+    AuthModule,
     TicketsModule,
   ],
   controllers: [AppController],
