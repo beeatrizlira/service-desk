@@ -14,8 +14,11 @@ export class TicketsService {
     private readonly ticketRepository: Repository<Ticket>,
   ) {}
 
-  create(dto: CreateTicketDto): Promise<Ticket> {
-    const ticket = this.ticketRepository.create(dto);
+  create(dto: CreateTicketDto, userId: number | null): Promise<Ticket> {
+    const ticket = this.ticketRepository.create({
+      ...dto,
+      userId,
+    });
     return this.ticketRepository.save(ticket);
   }
 

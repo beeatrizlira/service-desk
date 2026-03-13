@@ -3,8 +3,10 @@ import {
   NotFoundException,
   ValidationPipe,
 } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import { UserRole } from '../auth/enums/user-role.enum';
 import { TicketCategory } from './enums/ticket-category.enum';
 import { TicketStatus } from './enums/ticket-status.enum';
 import { TicketsController } from './tickets.controller';
@@ -23,9 +25,13 @@ const makeTicket = () => ({
 
 describe('TicketsController (HTTP)', () => {
   let app: INestApplication;
+  let authHeader: string;
 
   const httpServer = (): Parameters<typeof request>[0] =>
     app.getHttpServer() as unknown as Parameters<typeof request>[0];
+  const withAuth = (req: request.Test): request.Test =>
+    req.set('Authorization', authHeader);
+
   const ticketsServiceMock = {
     create: jest.fn(),
     findAll: jest.fn(),
@@ -38,6 +44,12 @@ describe('TicketsController (HTTP)', () => {
     jest.clearAllMocks();
 
     const moduleRef: TestingModule = await Test.createTestingModule({
+      imports: [
+        JwtModule.register({
+          secret: 'service-desk-dev-secret',
+          signOptions: { expiresIn: '1h' },
+        }),
+      ],
       controllers: [TicketsController],
       providers: [
         {
@@ -46,6 +58,14 @@ describe('TicketsController (HTTP)', () => {
         },
       ],
     }).compile();
+
+    const jwtService = moduleRef.get<JwtService>(JwtService);
+    authHeader = `Bearer ${await jwtService.signAsync({
+      sub: 1,
+      email: 'colaborador@service-desk.local',
+      role: UserRole.COLLABORATOR,
+      name: 'Ana Colaboradora',
+    })}`;
 
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
@@ -70,12 +90,11 @@ describe('TicketsController (HTTP)', () => {
     const ticket = makeTicket();
     ticketsServiceMock.create.mockResolvedValue(ticket);
 
-    const response = await request(httpServer())
-      .post('/tickets')
+    const response = await withAuth(request(httpServer()).post('/tickets'))
       .send(payload)
       .expect(201);
 
-    expect(ticketsServiceMock.create).toHaveBeenCalledWith(payload);
+    expect(ticketsServiceMock.create).toHaveBeenCalledWith(payload, 1);
     expect(response.body).toEqual(
       expect.objectContaining({
         id: ticket.id,
@@ -86,8 +105,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('POST /tickets should return 400 when payload is invalid', async () => {
-    await request(httpServer())
-      .post('/tickets')
+    await withAuth(request(httpServer()).post('/tickets'))
       .send({
         title: '',
         description: 'descricao valida',
@@ -99,8 +117,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('GET /tickets should return 400 when query enum is invalid', async () => {
-    await request(httpServer())
-      .get('/tickets')
+    await withAuth(request(httpServer()).get('/tickets'))
       .query({ status: 'INVALID_STATUS' })
       .expect(400);
 
@@ -108,8 +125,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('GET /tickets should return 400 when category enum is invalid', async () => {
-    await request(httpServer())
-      .get('/tickets')
+    await withAuth(request(httpServer()).get('/tickets'))
       .query({ category: 'INVALID_CATEGORY' })
       .expect(400);
 
@@ -119,8 +135,7 @@ describe('TicketsController (HTTP)', () => {
   it('GET /tickets should pass valid status and category filters to service', async () => {
     ticketsServiceMock.findAll.mockResolvedValue([]);
 
-    await request(httpServer())
-      .get('/tickets')
+    await withAuth(request(httpServer()).get('/tickets'))
       .query({ status: TicketStatus.OPEN, category: TicketCategory.TI })
       .expect(200);
 
@@ -131,7 +146,9 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('GET /tickets/:id should return 400 when id is not numeric', async () => {
-    await request(httpServer()).get('/tickets/not-a-number').expect(400);
+    await withAuth(request(httpServer()).get('/tickets/not-a-number')).expect(
+      400,
+    );
 
     expect(ticketsServiceMock.findOne).not.toHaveBeenCalled();
   });
@@ -141,14 +158,13 @@ describe('TicketsController (HTTP)', () => {
       new NotFoundException('Ticket #99 not found'),
     );
 
-    await request(httpServer()).get('/tickets/99').expect(404);
+    await withAuth(request(httpServer()).get('/tickets/99')).expect(404);
 
     expect(ticketsServiceMock.findOne).toHaveBeenCalledWith(99);
   });
 
   it('PATCH /tickets/:id/status should return 400 when id is not numeric', async () => {
-    await request(httpServer())
-      .patch('/tickets/not-a-number/status')
+    await withAuth(request(httpServer()).patch('/tickets/not-a-number/status'))
       .send({ status: TicketStatus.DONE })
       .expect(400);
 
@@ -156,8 +172,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('PATCH /tickets/:id/status should return 400 when status is invalid', async () => {
-    await request(httpServer())
-      .patch('/tickets/1/status')
+    await withAuth(request(httpServer()).patch('/tickets/1/status'))
       .send({ status: 'INVALID_STATUS' })
       .expect(400);
 
@@ -169,8 +184,7 @@ describe('TicketsController (HTTP)', () => {
     updatedTicket.status = TicketStatus.DONE;
     ticketsServiceMock.updateStatus.mockResolvedValue(updatedTicket);
 
-    await request(httpServer())
-      .patch('/tickets/1/status')
+    await withAuth(request(httpServer()).patch('/tickets/1/status'))
       .send({ status: TicketStatus.DONE })
       .expect(200);
 
@@ -184,8 +198,7 @@ describe('TicketsController (HTTP)', () => {
       new NotFoundException('Ticket #99 not found'),
     );
 
-    await request(httpServer())
-      .patch('/tickets/99/status')
+    await withAuth(request(httpServer()).patch('/tickets/99/status'))
       .send({ status: TicketStatus.DONE })
       .expect(404);
 
@@ -197,9 +210,9 @@ describe('TicketsController (HTTP)', () => {
   it('DELETE /tickets/:id should return 204 and call service with parsed id', async () => {
     ticketsServiceMock.remove.mockResolvedValue(undefined);
 
-    const response = await request(httpServer())
-      .delete('/tickets/1')
-      .expect(204);
+    const response = await withAuth(
+      request(httpServer()).delete('/tickets/1'),
+    ).expect(204);
 
     expect(ticketsServiceMock.remove).toHaveBeenCalledWith(1);
     expect(response.text).toBe('');
@@ -210,7 +223,7 @@ describe('TicketsController (HTTP)', () => {
       new NotFoundException('Ticket #99 not found'),
     );
 
-    await request(httpServer()).delete('/tickets/99').expect(404);
+    await withAuth(request(httpServer()).delete('/tickets/99')).expect(404);
 
     expect(ticketsServiceMock.remove).toHaveBeenCalledWith(99);
   });

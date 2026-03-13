@@ -51,24 +51,29 @@ describe('TicketsService', () => {
   });
 
   describe('create', () => {
-    it('should create and save a ticket, returning it with an id and OPEN status', async () => {
+    it('should create and save a ticket with userId, returning it with an id and OPEN status', async () => {
       const dto: CreateTicketDto = {
         title: 'Problema no sistema',
         description: 'Nao consigo acessar o ERP',
         category: TicketCategory.TI,
       };
-      const builtTicket = { ...dto, status: TicketStatus.OPEN };
-      const savedTicket = makeTicket();
+      const userId = 7;
+      const builtTicket = { ...dto, status: TicketStatus.OPEN, userId };
+      const savedTicket = makeTicket({ userId });
 
       repo.create.mockReturnValue(builtTicket);
       repo.save.mockResolvedValue(savedTicket);
 
-      const result = await service.create(dto);
+      const result = await service.create(dto, userId);
 
-      expect(repo.create).toHaveBeenCalledWith(dto);
+      expect(repo.create).toHaveBeenCalledWith({
+        ...dto,
+        userId,
+      });
       expect(repo.save).toHaveBeenCalledWith(builtTicket);
       expect(result.id).toBeDefined();
       expect(result.status).toBe(TicketStatus.OPEN);
+      expect(result.userId).toBe(userId);
       expect(result).toEqual(savedTicket);
     });
   });
