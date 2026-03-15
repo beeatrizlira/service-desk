@@ -44,7 +44,11 @@ export class TicketsController {
   }
 
   @Get()
-  findAll(@Query() query: FindTicketsQueryDto) {
+  findAll(
+    @Req() req: Request & { user?: RequestUser },
+    @Query() query: FindTicketsQueryDto,
+  ) {
+    this.assertSupport(req.user);
     return this.ticketsService.findAll(query);
   }
 
@@ -53,25 +57,60 @@ export class TicketsController {
     @Req() req: Request & { user?: RequestUser },
     @Query() query: FindTicketsQueryDto,
   ) {
-    return this.ticketsService.findMine(req.user?.id ?? 0, query);
+    const user = this.assertCollaborator(req.user);
+    return this.ticketsService.findMine(user.id, query);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.ticketsService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user?: RequestUser },
+  ) {
+    const user = req.user;
+    const ticket = await this.ticketsService.findOne(id);
+
+    if (user?.role === UserRole.SUPPORT) {
+      return ticket;
+    }
+
+    if (user?.role === UserRole.COLLABORATOR && ticket.userId === user.id) {
+      return ticket;
+    }
+
+    throw new ForbiddenException('You can only access your own tickets');
   }
 
   @Patch(':id/status')
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTicketStatusDto,
+    @Req() req: Request & { user?: RequestUser },
   ) {
+    this.assertSupport(req.user);
     return this.ticketsService.updateStatus(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user?: RequestUser },
+  ) {
+    this.assertSupport(req.user);
     return this.ticketsService.remove(id);
+  }
+
+  private assertCollaborator(user?: RequestUser): RequestUser {
+    if (!user || user.role !== UserRole.COLLABORATOR) {
+      throw new ForbiddenException('Only collaborators can access this route');
+    }
+    return user;
+  }
+
+  private assertSupport(user?: RequestUser): RequestUser {
+    if (!user || user.role !== UserRole.SUPPORT) {
+      throw new ForbiddenException('Only support users can access this route');
+    }
+    return user;
   }
 }

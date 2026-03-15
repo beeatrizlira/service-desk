@@ -26,13 +26,15 @@ const makeTicket = () => ({
 
 describe('TicketsController (HTTP)', () => {
   let app: INestApplication;
-  let authHeader: string;
+  let collaboratorAuthHeader: string;
   let supportAuthHeader: string;
 
   const httpServer = (): Parameters<typeof request>[0] =>
     app.getHttpServer() as unknown as Parameters<typeof request>[0];
-  const withAuth = (req: request.Test): request.Test =>
-    req.set('Authorization', authHeader);
+  const withCollaboratorAuth = (req: request.Test): request.Test =>
+    req.set('Authorization', collaboratorAuthHeader);
+  const withSupportAuth = (req: request.Test): request.Test =>
+    req.set('Authorization', supportAuthHeader);
 
   const ticketsServiceMock = {
     create: jest.fn(),
@@ -63,7 +65,7 @@ describe('TicketsController (HTTP)', () => {
     }).compile();
 
     const jwtService = moduleRef.get<JwtService>(JwtService);
-    authHeader = `Bearer ${await jwtService.signAsync({
+    collaboratorAuthHeader = `Bearer ${await jwtService.signAsync({
       sub: 1,
       email: 'colaborador@service-desk.local',
       role: UserRole.COLLABORATOR,
@@ -100,7 +102,9 @@ describe('TicketsController (HTTP)', () => {
     const ticket = makeTicket();
     ticketsServiceMock.create.mockResolvedValue(ticket);
 
-    const response = await withAuth(request(httpServer()).post('/tickets'))
+    const response = await withCollaboratorAuth(
+      request(httpServer()).post('/tickets'),
+    )
       .send(payload)
       .expect(201);
 
@@ -115,7 +119,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('POST /tickets should return 400 when payload is invalid', async () => {
-    await withAuth(request(httpServer()).post('/tickets'))
+    await withCollaboratorAuth(request(httpServer()).post('/tickets'))
       .send({
         title: '',
         description: 'descricao valida',
@@ -143,7 +147,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('GET /tickets should return 400 when query enum is invalid', async () => {
-    await withAuth(request(httpServer()).get('/tickets'))
+    await withSupportAuth(request(httpServer()).get('/tickets'))
       .query({ status: 'INVALID_STATUS' })
       .expect(400);
 
@@ -151,7 +155,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('GET /tickets should return 400 when category enum is invalid', async () => {
-    await withAuth(request(httpServer()).get('/tickets'))
+    await withSupportAuth(request(httpServer()).get('/tickets'))
       .query({ category: 'INVALID_CATEGORY' })
       .expect(400);
 
@@ -159,7 +163,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('GET /tickets should return 400 when period enum is invalid', async () => {
-    await withAuth(request(httpServer()).get('/tickets'))
+    await withSupportAuth(request(httpServer()).get('/tickets'))
       .query({ period: '90d' })
       .expect(400);
 
@@ -169,7 +173,7 @@ describe('TicketsController (HTTP)', () => {
   it('GET /tickets should pass valid status and category filters to service', async () => {
     ticketsServiceMock.findAll.mockResolvedValue([]);
 
-    await withAuth(request(httpServer()).get('/tickets'))
+    await withSupportAuth(request(httpServer()).get('/tickets'))
       .query({ status: TicketStatus.OPEN, category: TicketCategory.TI })
       .expect(200);
 
@@ -179,11 +183,19 @@ describe('TicketsController (HTTP)', () => {
     });
   });
 
+  it('GET /tickets should return 403 when user role is collaborator', async () => {
+    await withCollaboratorAuth(request(httpServer()).get('/tickets')).expect(
+      403,
+    );
+
+    expect(ticketsServiceMock.findAll).not.toHaveBeenCalled();
+  });
+
   it('GET /tickets/me should return current user tickets', async () => {
     const myTickets = [makeTicket()];
     ticketsServiceMock.findMine.mockResolvedValue(myTickets);
 
-    const response = await withAuth(
+    const response = await withCollaboratorAuth(
       request(httpServer()).get('/tickets/me'),
     ).expect(200);
 
@@ -195,7 +207,7 @@ describe('TicketsController (HTTP)', () => {
   it('GET /tickets/me should pass q, status and category filters to service', async () => {
     ticketsServiceMock.findMine.mockResolvedValue([]);
 
-    await withAuth(request(httpServer()).get('/tickets/me'))
+    await withCollaboratorAuth(request(httpServer()).get('/tickets/me'))
       .query({
         q: 'erp',
         status: TicketStatus.OPEN,
@@ -213,7 +225,7 @@ describe('TicketsController (HTTP)', () => {
   it('GET /tickets/me should pass period filter to service', async () => {
     ticketsServiceMock.findMine.mockResolvedValue([]);
 
-    await withAuth(request(httpServer()).get('/tickets/me'))
+    await withCollaboratorAuth(request(httpServer()).get('/tickets/me'))
       .query({ period: TicketPeriod.LAST_30_DAYS })
       .expect(200);
 
@@ -222,10 +234,16 @@ describe('TicketsController (HTTP)', () => {
     });
   });
 
+  it('GET /tickets/me should return 403 when user role is support', async () => {
+    await withSupportAuth(request(httpServer()).get('/tickets/me')).expect(403);
+
+    expect(ticketsServiceMock.findMine).not.toHaveBeenCalled();
+  });
+
   it('GET /tickets/:id should return 400 when id is not numeric', async () => {
-    await withAuth(request(httpServer()).get('/tickets/not-a-number')).expect(
-      400,
-    );
+    await withSupportAuth(
+      request(httpServer()).get('/tickets/not-a-number'),
+    ).expect(400);
 
     expect(ticketsServiceMock.findOne).not.toHaveBeenCalled();
   });
@@ -235,13 +253,53 @@ describe('TicketsController (HTTP)', () => {
       new NotFoundException('Ticket #99 not found'),
     );
 
-    await withAuth(request(httpServer()).get('/tickets/99')).expect(404);
+    await withSupportAuth(request(httpServer()).get('/tickets/99')).expect(404);
 
     expect(ticketsServiceMock.findOne).toHaveBeenCalledWith(99);
   });
 
+  it('GET /tickets/:id should return ticket for support user', async () => {
+    const ticket = makeTicket();
+    ticketsServiceMock.findOne.mockResolvedValue(ticket);
+
+    const response = await withSupportAuth(
+      request(httpServer()).get('/tickets/1'),
+    ).expect(200);
+
+    expect(ticketsServiceMock.findOne).toHaveBeenCalledWith(1);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        id: ticket.id,
+      }),
+    );
+  });
+
+  it('GET /tickets/:id should return ticket for collaborator when it belongs to them', async () => {
+    const myTicket = { ...makeTicket(), userId: 1 };
+    ticketsServiceMock.findOne.mockResolvedValue(myTicket);
+
+    await withCollaboratorAuth(request(httpServer()).get('/tickets/1')).expect(
+      200,
+    );
+
+    expect(ticketsServiceMock.findOne).toHaveBeenCalledWith(1);
+  });
+
+  it('GET /tickets/:id should return 403 for collaborator when ticket belongs to another user', async () => {
+    const otherUserTicket = { ...makeTicket(), userId: 2 };
+    ticketsServiceMock.findOne.mockResolvedValue(otherUserTicket);
+
+    await withCollaboratorAuth(request(httpServer()).get('/tickets/1')).expect(
+      403,
+    );
+
+    expect(ticketsServiceMock.findOne).toHaveBeenCalledWith(1);
+  });
+
   it('PATCH /tickets/:id/status should return 400 when id is not numeric', async () => {
-    await withAuth(request(httpServer()).patch('/tickets/not-a-number/status'))
+    await withSupportAuth(
+      request(httpServer()).patch('/tickets/not-a-number/status'),
+    )
       .send({ status: TicketStatus.DONE })
       .expect(400);
 
@@ -249,7 +307,7 @@ describe('TicketsController (HTTP)', () => {
   });
 
   it('PATCH /tickets/:id/status should return 400 when status is invalid', async () => {
-    await withAuth(request(httpServer()).patch('/tickets/1/status'))
+    await withSupportAuth(request(httpServer()).patch('/tickets/1/status'))
       .send({ status: 'INVALID_STATUS' })
       .expect(400);
 
@@ -261,7 +319,7 @@ describe('TicketsController (HTTP)', () => {
     updatedTicket.status = TicketStatus.DONE;
     ticketsServiceMock.updateStatus.mockResolvedValue(updatedTicket);
 
-    await withAuth(request(httpServer()).patch('/tickets/1/status'))
+    await withSupportAuth(request(httpServer()).patch('/tickets/1/status'))
       .send({ status: TicketStatus.DONE })
       .expect(200);
 
@@ -275,7 +333,7 @@ describe('TicketsController (HTTP)', () => {
       new NotFoundException('Ticket #99 not found'),
     );
 
-    await withAuth(request(httpServer()).patch('/tickets/99/status'))
+    await withSupportAuth(request(httpServer()).patch('/tickets/99/status'))
       .send({ status: TicketStatus.DONE })
       .expect(404);
 
@@ -284,10 +342,18 @@ describe('TicketsController (HTTP)', () => {
     });
   });
 
+  it('PATCH /tickets/:id/status should return 403 when user role is collaborator', async () => {
+    await withCollaboratorAuth(request(httpServer()).patch('/tickets/1/status'))
+      .send({ status: TicketStatus.DONE })
+      .expect(403);
+
+    expect(ticketsServiceMock.updateStatus).not.toHaveBeenCalled();
+  });
+
   it('DELETE /tickets/:id should return 204 and call service with parsed id', async () => {
     ticketsServiceMock.remove.mockResolvedValue(undefined);
 
-    const response = await withAuth(
+    const response = await withSupportAuth(
       request(httpServer()).delete('/tickets/1'),
     ).expect(204);
 
@@ -300,8 +366,18 @@ describe('TicketsController (HTTP)', () => {
       new NotFoundException('Ticket #99 not found'),
     );
 
-    await withAuth(request(httpServer()).delete('/tickets/99')).expect(404);
+    await withSupportAuth(request(httpServer()).delete('/tickets/99')).expect(
+      404,
+    );
 
     expect(ticketsServiceMock.remove).toHaveBeenCalledWith(99);
+  });
+
+  it('DELETE /tickets/:id should return 403 when user role is collaborator', async () => {
+    await withCollaboratorAuth(
+      request(httpServer()).delete('/tickets/1'),
+    ).expect(403);
+
+    expect(ticketsServiceMock.remove).not.toHaveBeenCalled();
   });
 });
