@@ -23,11 +23,20 @@ export class KanbanBoardComponent {
   readonly updatingTicketIds = signal<Set<number>>(new Set());
   readonly draggedTicketId = signal<number | null>(null);
   readonly activeDropStatus = signal<TicketStatus | null>(null);
+  readonly mobileFiltersOpen = signal(false);
+  readonly mobileActiveStatus = signal<TicketStatus>(TicketStatus.OPEN);
 
   readonly categoryFilter = signal<TicketCategory | null>(null);
   readonly statusFilter = signal<TicketStatus | null>(null);
   readonly searchTerm = signal('');
   readonly periodFilter = signal<TicketPeriodFilter | null>(null);
+
+  readonly boardStatuses: TicketStatus[] = [
+    TicketStatus.OPEN,
+    TicketStatus.IN_PROGRESS,
+    TicketStatus.DONE,
+    TicketStatus.CANCELLED,
+  ];
 
   readonly filteredTickets = computed(() => {
     const category = this.categoryFilter();
@@ -133,6 +142,53 @@ export class KanbanBoardComponent {
   setSearchTerm(value: string): void {
     this.searchTerm.set(value);
     this.scheduleSearch();
+  }
+
+  openMobileFilters(): void {
+    this.mobileFiltersOpen.set(true);
+  }
+
+  closeMobileFilters(): void {
+    this.mobileFiltersOpen.set(false);
+  }
+
+  selectMobileStatus(status: TicketStatus, container?: HTMLElement): void {
+    this.mobileActiveStatus.set(status);
+    if (!container) {
+      return;
+    }
+
+    const statusIndex = this.boardStatuses.indexOf(status);
+    if (statusIndex < 0) {
+      return;
+    }
+
+    container.scrollTo({
+      left: statusIndex * container.clientWidth,
+      behavior: 'smooth',
+    });
+  }
+
+  onMobileBoardScroll(event: Event): void {
+    const element = event.target as HTMLElement;
+    if (!element || element.clientWidth === 0) {
+      return;
+    }
+
+    const index = Math.round(element.scrollLeft / element.clientWidth);
+    const status = this.boardStatuses[index];
+    if (status) {
+      this.mobileActiveStatus.set(status);
+    }
+  }
+
+  onMobileStatusSelect(ticket: Ticket, value: string): void {
+    const nextStatus = value as TicketStatus;
+    if (!nextStatus || nextStatus === ticket.status) {
+      return;
+    }
+
+    this.updateStatus(ticket, nextStatus);
   }
 
   updateStatus(ticket: Ticket, status: TicketStatus): void {
@@ -248,6 +304,36 @@ export class KanbanBoardComponent {
 
   isDropTarget(status: TicketStatus): boolean {
     return this.activeDropStatus() === status && this.canDropOnStatus(status);
+  }
+
+  ticketsByStatus(status: TicketStatus): Ticket[] {
+    switch (status) {
+      case TicketStatus.OPEN:
+        return this.openTickets();
+      case TicketStatus.IN_PROGRESS:
+        return this.inProgressTickets();
+      case TicketStatus.DONE:
+        return this.doneTickets();
+      case TicketStatus.CANCELLED:
+        return this.cancelledTickets();
+      default:
+        return [];
+    }
+  }
+
+  statusPanelClass(status: TicketStatus): string {
+    switch (status) {
+      case TicketStatus.OPEN:
+        return 'border-slate-200 bg-white';
+      case TicketStatus.IN_PROGRESS:
+        return 'border-sky-100 bg-sky-50/30';
+      case TicketStatus.DONE:
+        return 'border-emerald-100 bg-emerald-50/30';
+      case TicketStatus.CANCELLED:
+        return 'border-rose-100 bg-rose-50/30';
+      default:
+        return 'border-slate-200 bg-white';
+    }
   }
 
   statusBadgeClass(status: TicketStatus): string {
