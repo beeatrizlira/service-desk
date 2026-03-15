@@ -107,6 +107,11 @@ export class TicketFormComponent {
     this.clearErrorToastTimer();
   }
 
+  retrySubmit(): void {
+    this.closeErrorToast();
+    this.onSubmit();
+  }
+
   private clearSuccessToastTimer(): void {
     if (this.successToastTimeoutId) {
       clearTimeout(this.successToastTimeoutId);

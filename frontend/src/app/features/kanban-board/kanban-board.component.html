@@ -111,11 +111,18 @@
   </section>
 
   @if (error()) {
-  <div class="flex items-center justify-between rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-    <span>{{ error() }}</span>
-    <button type="button" (click)="loadTickets()" class="ml-4 font-semibold underline hover:text-rose-900">
-      Tentar novamente
-    </button>
+  <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+    <p>{{ error() }}</p>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button type="button" (click)="loadTickets()" class="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-900">
+        Tentar novamente
+      </button>
+      @if (hasActiveFilters()) {
+      <button type="button" (click)="clearFilters()" class="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-900">
+        Limpar filtros
+      </button>
+      }
+    </div>
   </div>
   }
 
@@ -131,6 +138,28 @@
     <div class="h-48 animate-pulse rounded-2xl border border-slate-200 bg-slate-100"></div>
     }
   </div>
+  } @else {
+  @if (filteredTickets().length === 0) {
+  <article class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+    <p class="text-base font-medium text-slate-700">Nenhum chamado encontrado.</p>
+    <p class="mt-1 text-sm text-slate-500">
+      @if (hasActiveFilters()) {
+      Ajuste os filtros para buscar outros resultados.
+      } @else {
+      Ainda nao existem chamados para exibir.
+      }
+    </p>
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+      @if (hasActiveFilters()) {
+      <button type="button" (click)="clearFilters()" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50">
+        Limpar filtros
+      </button>
+      }
+      <button type="button" (click)="loadTickets()" class="rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+        Atualizar chamados
+      </button>
+    </div>
+  </article>
   } @else {
   <section class="space-y-3 lg:hidden">
     <div class="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
@@ -272,6 +301,7 @@
       </div>
     </section>
   </div>
+  }
   }
 </section>
 

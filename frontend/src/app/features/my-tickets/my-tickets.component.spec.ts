@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
@@ -35,7 +36,7 @@ describe('MyTicketsComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [MyTicketsComponent],
-      providers: [{ provide: TicketService, useValue: ticketServiceMock }],
+      providers: [provideRouter([]), { provide: TicketService, useValue: ticketServiceMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(MyTicketsComponent);

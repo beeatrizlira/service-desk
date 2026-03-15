@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
@@ -7,7 +8,7 @@ import { TicketPeriodFilter, TicketService } from '../../core/services/ticket.se
 
 @Component({
   selector: 'app-my-tickets',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './my-tickets.component.html',
 })
 export class MyTicketsComponent {

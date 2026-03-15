@@ -7,9 +7,14 @@
 @if (showErrorToast()) {
 <div class="fixed right-4 top-40 z-50 flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800 shadow-lg">
   <span>{{ errorMessage() }}</span>
-  <button type="button" (click)="closeErrorToast()" class="rounded p-0.5 text-rose-700 transition hover:bg-rose-100 hover:text-rose-900" aria-label="Fechar aviso de erro">
-    x
-  </button>
+  <div class="flex items-center gap-2">
+    <button type="button" (click)="retrySubmit()" class="rounded border border-rose-300 bg-white px-2 py-1 text-xs font-semibold text-rose-700 transition hover:border-rose-400 hover:text-rose-900">
+      Tentar novamente
+    </button>
+    <button type="button" (click)="closeErrorToast()" class="rounded p-0.5 text-rose-700 transition hover:bg-rose-100 hover:text-rose-900" aria-label="Fechar aviso de erro">
+      x
+    </button>
+  </div>
 </div>
 }
 
@@ -23,6 +28,12 @@
   </header>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm md:p-8">
+    @if (loading()) {
+    <div class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800" role="status">
+      Enviando solicitacao. Aguarde alguns segundos...
+    </div>
+    }
+
     <!-- Titulo -->
     <div class="space-y-2">
       <label for="ticket-title" class="text-sm font-semibold text-slate-700">Titulo</label>
