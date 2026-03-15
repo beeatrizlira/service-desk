@@ -107,7 +107,8 @@ describe('authErrorInterceptor', () => {
       firstValueFrom(authErrorInterceptor(request, next)),
     );
 
-    expect(response.status).toBe(200);
+    expect(response).toBeInstanceOf(HttpResponse);
+    expect((response as HttpResponse<unknown>).status).toBe(200);
     expect(authServiceMock.logout).not.toHaveBeenCalled();
     expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
   });

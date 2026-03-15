@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { TicketService } from '../../core/services/ticket.service';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
@@ -68,13 +68,17 @@ describe('MyTicketsComponent', () => {
     expect(ticketServiceMock.getMyTickets).toHaveBeenLastCalledWith({ period: '7d', q: undefined });
   });
 
-  it('should debounce search before reloading', fakeAsync(() => {
+  it('should debounce search before reloading', () => {
+    vi.useFakeTimers();
+
     component.setSearchTerm('vpn');
-    tick(299);
+    vi.advanceTimersByTime(299);
     expect(ticketServiceMock.getMyTickets).toHaveBeenCalledTimes(1);
 
-    tick(1);
+    vi.advanceTimersByTime(1);
     expect(ticketServiceMock.getMyTickets).toHaveBeenCalledTimes(2);
     expect(ticketServiceMock.getMyTickets).toHaveBeenLastCalledWith({ q: 'vpn', period: undefined });
-  }));
+
+    vi.useRealTimers();
+  });
 });
