@@ -3,17 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { Ticket } from './tickets/entities/ticket.entity';
+import { buildTypeOrmOptions } from './database/typeorm.config';
 import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'db.sqlite',
-      entities: [Ticket],
-      synchronize: true,
-    }),
+    TypeOrmModule.forRoot(buildTypeOrmOptions()),
     AuthModule,
     TicketsModule,
   ],
