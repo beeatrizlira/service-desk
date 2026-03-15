@@ -7,7 +7,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://SEU_BACKEND.onrender.com/api/$1"
+      "dest": "https://service-desk-2m5h.onrender.com/api/$1"
     },
     {
       "handle": "filesystem"
