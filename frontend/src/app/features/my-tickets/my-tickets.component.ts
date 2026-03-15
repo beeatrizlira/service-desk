@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
@@ -15,6 +15,13 @@ export class MyTicketsComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly loadMyTicketsTrigger$ = new Subject<void>();
   private readonly searchTermChanges$ = new Subject<void>();
+  private lastFocusedBeforeMobileFilters: HTMLElement | null = null;
+
+  @ViewChild('mobileFiltersPanel')
+  private mobileFiltersPanel?: ElementRef<HTMLElement>;
+
+  @ViewChild('mobileFiltersTrigger')
+  private mobileFiltersTrigger?: ElementRef<HTMLElement>;
 
   readonly tickets = signal<Ticket[]>([]);
   readonly loading = signal(true);
@@ -87,11 +94,61 @@ export class MyTicketsComponent {
   }
 
   openMobileFilters(): void {
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      this.lastFocusedBeforeMobileFilters = document.activeElement;
+    }
+
     this.mobileFiltersOpen.set(true);
+    setTimeout(() => this.focusFirstMobileFiltersElement());
   }
 
   closeMobileFilters(): void {
     this.mobileFiltersOpen.set(false);
+    setTimeout(() => this.restoreMobileFiltersFocus());
+  }
+
+  onMobileFiltersKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeMobileFilters();
+      return;
+    }
+
+    if (event.key !== 'Tab') {
+      return;
+    }
+
+    const focusableElements = this.getMobileFiltersFocusableElements();
+    const panel = this.mobileFiltersPanel?.nativeElement;
+    if (!panel) {
+      return;
+    }
+
+    if (focusableElements.length === 0) {
+      event.preventDefault();
+      panel.focus();
+      return;
+    }
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+    const activeElement =
+      typeof document !== 'undefined' && document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+
+    if (event.shiftKey) {
+      if (activeElement === first || activeElement === panel) {
+        event.preventDefault();
+        last?.focus();
+      }
+      return;
+    }
+
+    if (activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
   }
 
   statusBadgeClass(status: TicketStatus): string {
@@ -139,5 +196,46 @@ export class MyTicketsComponent {
       .subscribe(() => {
         this.loading.set(false);
       });
+  }
+
+  private focusFirstMobileFiltersElement(): void {
+    if (!this.mobileFiltersOpen()) {
+      return;
+    }
+
+    const panel = this.mobileFiltersPanel?.nativeElement;
+    if (!panel) {
+      return;
+    }
+
+    const focusableElements = this.getMobileFiltersFocusableElements();
+    const firstFocusableElement = focusableElements[0];
+    if (firstFocusableElement) {
+      firstFocusableElement.focus();
+      return;
+    }
+
+    panel.focus();
+  }
+
+  private restoreMobileFiltersFocus(): void {
+    const focusTarget =
+      this.mobileFiltersTrigger?.nativeElement ?? this.lastFocusedBeforeMobileFilters;
+
+    focusTarget?.focus();
+    this.lastFocusedBeforeMobileFilters = null;
+  }
+
+  private getMobileFiltersFocusableElements(): HTMLElement[] {
+    const panel = this.mobileFiltersPanel?.nativeElement;
+    if (!panel) {
+      return [];
+    }
+
+    const selector =
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return Array.from(panel.querySelectorAll<HTMLElement>(selector)).filter(
+      (element) => !element.hasAttribute('disabled'),
+    );
   }
 }
