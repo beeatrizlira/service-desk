@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
+import { Subject, catchError, debounceTime, finalize, of, switchMap, tap } from 'rxjs';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
 import { TicketPeriodFilter, TicketService } from '../../core/services/ticket.service';
 
@@ -13,7 +13,8 @@ import { TicketPeriodFilter, TicketService } from '../../core/services/ticket.se
 export class KanbanBoardComponent {
   private readonly ticketService = inject(TicketService);
   private readonly destroyRef = inject(DestroyRef);
-  private searchDebounceId: ReturnType<typeof setTimeout> | null = null;
+  private readonly loadTicketsTrigger$ = new Subject<void>();
+  private readonly searchTermChanges$ = new Subject<void>();
 
   readonly tickets = signal<Ticket[]>([]);
   readonly loading = signal(true);
@@ -86,31 +87,12 @@ export class KanbanBoardComponent {
   };
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.clearSearchDebounce());
+    this.bindDataStreams();
     this.loadTickets();
   }
 
   loadTickets(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.ticketService
-      .getTickets({
-        q: this.searchTerm().trim() || undefined,
-        period: this.periodFilter() ?? undefined,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (tickets) => {
-          this.tickets.set(tickets);
-          this.lastUpdatedAt.set(new Date());
-          this.loading.set(false);
-        },
-        error: () => {
-          this.error.set('Nao foi possivel carregar os chamados. Verifique se a API esta online.');
-          this.loading.set(false);
-        },
-      });
+    this.loadTicketsTrigger$.next();
   }
 
   setCategoryFilter(value: string): void {
@@ -141,7 +123,7 @@ export class KanbanBoardComponent {
 
   setSearchTerm(value: string): void {
     this.searchTerm.set(value);
-    this.scheduleSearch();
+    this.searchTermChanges$.next();
   }
 
   openMobileFilters(): void {
@@ -417,20 +399,40 @@ export class KanbanBoardComponent {
     return currentStatus !== targetStatus;
   }
 
-  private scheduleSearch(): void {
-    this.clearSearchDebounce();
-    this.searchDebounceId = setTimeout(() => {
-      this.searchDebounceId = null;
-      this.loadTickets();
-    }, 300);
-  }
+  private bindDataStreams(): void {
+    this.searchTermChanges$
+      .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadTickets());
 
-  private clearSearchDebounce(): void {
-    if (!this.searchDebounceId) {
-      return;
-    }
-
-    clearTimeout(this.searchDebounceId);
-    this.searchDebounceId = null;
+    this.loadTicketsTrigger$
+      .pipe(
+        tap(() => {
+          this.loading.set(true);
+          this.error.set(null);
+        }),
+        switchMap(() =>
+          this.ticketService
+            .getTickets({
+              q: this.searchTerm().trim() || undefined,
+              period: this.periodFilter() ?? undefined,
+            })
+            .pipe(
+              tap((tickets) => {
+                this.tickets.set(tickets);
+                this.lastUpdatedAt.set(new Date());
+              }),
+              catchError(() => {
+                this.error.set(
+                  'Nao foi possivel carregar os chamados. Verifique se a API esta online.',
+                );
+                return of(null);
+              }),
+            ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.loading.set(false);
+      });
   }
 }

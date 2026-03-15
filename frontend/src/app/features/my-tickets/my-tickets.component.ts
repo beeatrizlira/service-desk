@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
 import { Ticket, TicketCategory, TicketStatus } from '../../domain/models/ticket.model';
 import { TicketPeriodFilter, TicketService } from '../../core/services/ticket.service';
 
@@ -12,11 +13,13 @@ import { TicketPeriodFilter, TicketService } from '../../core/services/ticket.se
 export class MyTicketsComponent {
   private readonly ticketService = inject(TicketService);
   private readonly destroyRef = inject(DestroyRef);
-  private searchDebounceId: ReturnType<typeof setTimeout> | null = null;
+  private readonly loadMyTicketsTrigger$ = new Subject<void>();
+  private readonly searchTermChanges$ = new Subject<void>();
 
   readonly tickets = signal<Ticket[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly mobileFiltersOpen = signal(false);
   readonly statusFilter = signal<TicketStatus | null>(null);
   readonly searchTerm = signal('');
   readonly periodFilter = signal<TicketPeriodFilter | null>(null);
@@ -49,30 +52,12 @@ export class MyTicketsComponent {
   };
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.clearSearchDebounce());
+    this.bindDataStreams();
     this.loadMyTickets();
   }
 
   loadMyTickets(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.ticketService
-      .getMyTickets({
-        q: this.searchTerm().trim() || undefined,
-        period: this.periodFilter() ?? undefined,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (tickets) => {
-          this.tickets.set(tickets);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.error.set('Nao foi possivel carregar suas solicitacoes no momento.');
-          this.loading.set(false);
-        },
-      });
+    this.loadMyTicketsTrigger$.next();
   }
 
   setStatusFilter(value: string): void {
@@ -98,7 +83,15 @@ export class MyTicketsComponent {
 
   setSearchTerm(value: string): void {
     this.searchTerm.set(value);
-    this.scheduleSearch();
+    this.searchTermChanges$.next();
+  }
+
+  openMobileFilters(): void {
+    this.mobileFiltersOpen.set(true);
+  }
+
+  closeMobileFilters(): void {
+    this.mobileFiltersOpen.set(false);
   }
 
   statusBadgeClass(status: TicketStatus): string {
@@ -116,20 +109,35 @@ export class MyTicketsComponent {
     }
   }
 
-  private scheduleSearch(): void {
-    this.clearSearchDebounce();
-    this.searchDebounceId = setTimeout(() => {
-      this.searchDebounceId = null;
-      this.loadMyTickets();
-    }, 300);
-  }
+  private bindDataStreams(): void {
+    this.searchTermChanges$
+      .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadMyTickets());
 
-  private clearSearchDebounce(): void {
-    if (!this.searchDebounceId) {
-      return;
-    }
-
-    clearTimeout(this.searchDebounceId);
-    this.searchDebounceId = null;
+    this.loadMyTicketsTrigger$
+      .pipe(
+        tap(() => {
+          this.loading.set(true);
+          this.error.set(null);
+        }),
+        switchMap(() =>
+          this.ticketService
+            .getMyTickets({
+              q: this.searchTerm().trim() || undefined,
+              period: this.periodFilter() ?? undefined,
+            })
+            .pipe(
+              tap((tickets) => this.tickets.set(tickets)),
+              catchError(() => {
+                this.error.set('Nao foi possivel carregar suas solicitacoes no momento.');
+                return of(null);
+              }),
+            ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.loading.set(false);
+      });
   }
 }
