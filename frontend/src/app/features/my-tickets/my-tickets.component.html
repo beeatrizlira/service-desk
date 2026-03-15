@@ -43,25 +43,6 @@
     </button>
   </header>
 
-  <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-    <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p class="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Abertos</p>
-      <p class="mt-2 text-2xl font-semibold text-slate-900">{{ openCount() }}</p>
-    </article>
-    <article class="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 shadow-sm">
-      <p class="text-xs font-semibold uppercase tracking-[0.1em] text-sky-700">Em andamento</p>
-      <p class="mt-2 text-2xl font-semibold text-sky-900">{{ inProgressCount() }}</p>
-    </article>
-    <article class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-sm">
-      <p class="text-xs font-semibold uppercase tracking-[0.1em] text-emerald-700">Concluidos</p>
-      <p class="mt-2 text-2xl font-semibold text-emerald-900">{{ doneCount() }}</p>
-    </article>
-    <article class="rounded-2xl border border-rose-100 bg-rose-50/60 p-4 shadow-sm">
-      <p class="text-xs font-semibold uppercase tracking-[0.1em] text-rose-700">Cancelados</p>
-      <p class="mt-2 text-2xl font-semibold text-rose-900">{{ cancelledCount() }}</p>
-    </article>
-  </section>
-
   <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <label class="flex flex-col gap-1.5">

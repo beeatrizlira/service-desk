@@ -33,20 +33,6 @@ export class MyTicketsComponent {
       this.searchTerm().trim().length > 0,
   );
 
-  readonly openCount = computed(
-    () => this.tickets().filter((ticket) => ticket.status === TicketStatus.OPEN).length,
-  );
-  readonly inProgressCount = computed(
-    () =>
-      this.tickets().filter((ticket) => ticket.status === TicketStatus.IN_PROGRESS).length,
-  );
-  readonly doneCount = computed(
-    () => this.tickets().filter((ticket) => ticket.status === TicketStatus.DONE).length,
-  );
-  readonly cancelledCount = computed(
-    () => this.tickets().filter((ticket) => ticket.status === TicketStatus.CANCELLED).length,
-  );
-
   readonly statusLabel: Record<TicketStatus, string> = {
     [TicketStatus.OPEN]: 'Aberto',
     [TicketStatus.IN_PROGRESS]: 'Em andamento',
