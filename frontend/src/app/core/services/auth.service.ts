@@ -8,6 +8,7 @@ import {
   LoginResponse,
   UserRole,
 } from '../../domain/models/auth.model';
+import { environment } from '../../../environments/environment';
 
 const AUTH_STORAGE_KEY = 'service-desk-auth-session';
 
@@ -16,7 +17,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
 
-  private readonly baseUrl = 'http://localhost:3001/api/auth';
+  private readonly baseUrl = `${environment.apiBaseUrl}/auth`;
   readonly session = signal<AuthSession | null>(this.readStoredSession());
 
   login(payload: LoginPayload): Observable<LoginResponse> {
