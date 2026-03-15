@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: service-desk-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/auth/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_SYNCHRONIZE
+        value: "true"
+      - key: DB_LOGGING
+        value: "false"
+      - key: DATABASE_PATH
+        value: /var/data/db.sqlite
+    disk:
+      name: service-desk-data
+      mountPath: /var/data
+      sizeGB: 1
