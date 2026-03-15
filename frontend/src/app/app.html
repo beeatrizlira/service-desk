@@ -1,63 +1,99 @@
 <div class="min-h-screen bg-slate-50">
   <header class="border-b border-slate-200/80 bg-white/95 backdrop-blur">
-    <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-3">
-        <div
-          class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white"
-        >
-          SD
+    <nav class="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+      <div class="flex items-start justify-between gap-3 sm:items-center">
+        <div class="flex items-center gap-3">
+          <div
+            class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white"
+          >
+            SD
+          </div>
+          <div class="leading-tight">
+            <h1 class="text-lg font-semibold text-slate-900">Service Desk</h1>
+            <p class="text-xs text-slate-500">Atendimento interno</p>
+          </div>
         </div>
-        <div class="leading-tight">
-          <h1 class="text-lg font-semibold text-slate-900">Service Desk</h1>
-          <p class="text-xs text-slate-500">Atendimento interno</p>
+
+        <div class="flex items-center gap-2">
+          @if (session(); as currentSession) {
+            @if (currentSession.user.role === UserRole.COLLABORATOR) {
+              <div class="hidden items-center gap-2 lg:flex">
+                <a
+                  routerLink="/tickets/new"
+                  routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+                  class="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  Nova Solicitacao
+                </a>
+                <a
+                  routerLink="/my-tickets"
+                  routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+                  class="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  Minhas Solicitacoes
+                </a>
+              </div>
+            } @else {
+              <span
+                class="hidden rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 lg:inline-flex"
+              >
+                Time de Suporte
+              </span>
+            }
+
+            <span
+              class="hidden rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600 sm:inline-flex"
+            >
+              {{ currentSession.user.name }}
+            </span>
+
+            <button
+              type="button"
+              (click)="logout()"
+              class="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+            >
+              Sair
+            </button>
+          } @else {
+            <a
+              routerLink="/login"
+              routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
+              class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Entrar
+            </a>
+          }
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        @if (session(); as currentSession) {
-          @if (currentSession.user.role === UserRole.SUPPORT) {
-            <span
-              class="hidden rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 sm:inline-flex"
-            >
-              Time de Suporte
-            </span>
-          } @else {
+      @if (session(); as currentSession) {
+        @if (currentSession.user.role === UserRole.COLLABORATOR) {
+          <div class="mt-3 grid grid-cols-2 gap-2 lg:hidden">
             <a
               routerLink="/tickets/new"
               routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
-              class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+              class="whitespace-nowrap rounded-xl px-3 py-2 text-center text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Nova Solicitacao
             </a>
             <a
               routerLink="/my-tickets"
               routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
-              class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+              class="whitespace-nowrap rounded-xl px-3 py-2 text-center text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Minhas Solicitacoes
             </a>
-          }
-          <span
-            class="hidden rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600 sm:inline-flex"
-            >{{ currentSession.user.name }}</span
-          >
-          <button
-            type="button"
-            (click)="logout()"
-            class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-          >
-            Sair
-          </button>
+          </div>
         } @else {
-          <a
-            routerLink="/login"
-            routerLinkActive="bg-slate-900 text-white hover:bg-slate-900 hover:text-white"
-            class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
-          >
-            Entrar
-          </a>
+          <div class="mt-3 lg:hidden">
+            <span
+              class="inline-flex rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600"
+            >
+              Time de Suporte
+            </span>
+          </div>
         }
-      </div>
+      }
     </nav>
   </header>
 

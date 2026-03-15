@@ -276,12 +276,12 @@
 </section>
 
 @if (mobileFiltersOpen()) {
-<div class="fixed inset-0 z-40 bg-slate-900/45 lg:hidden" (click)="closeMobileFilters()"></div>
+<div class="fixed inset-0 z-40 bg-slate-900/45 lg:hidden" (click)="closeMobileFilters()" aria-hidden="true"></div>
 
-<section class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border border-slate-200 bg-white p-5 shadow-2xl lg:hidden">
+<section class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border border-slate-200 bg-white p-5 shadow-2xl lg:hidden" role="dialog" aria-modal="true" aria-labelledby="kanban-mobile-filters-title" tabindex="-1" (keydown.escape)="closeMobileFilters()">
   <header class="flex items-center justify-between gap-3">
-    <h3 class="text-base font-semibold text-slate-900">Filtros</h3>
-    <button type="button" (click)="closeMobileFilters()" class="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm font-semibold text-slate-600">
+    <h3 id="kanban-mobile-filters-title" class="text-base font-semibold text-slate-900">Filtros</h3>
+    <button type="button" (click)="closeMobileFilters()" class="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm font-semibold text-slate-600" aria-label="Fechar filtros">
       Fechar
     </button>
   </header>
