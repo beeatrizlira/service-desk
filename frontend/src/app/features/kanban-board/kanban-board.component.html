@@ -196,12 +196,17 @@
                   Detalhes
                 </button>
 
-                <select [value]="ticket.status" (click)="$event.stopPropagation()" (change)="onMobileStatusSelect(ticket, $any($event.target).value)" [disabled]="isUpdatingTicket(ticket.id)" class="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700 outline-none disabled:opacity-60">
-                  <option value="OPEN">Aberto</option>
-                  <option value="IN_PROGRESS">Em andamento</option>
-                  <option value="DONE">Concluido</option>
-                  <option value="CANCELLED">Cancelado</option>
-                </select>
+                <div class="relative">
+                  <select [value]="ticket.status" (click)="$event.stopPropagation()" (change)="onMobileStatusSelect(ticket, $any($event.target).value)" [disabled]="isUpdatingTicket(ticket.id)" class="w-full appearance-none rounded-lg border border-slate-200 bg-white py-1.5 pl-2 pr-8 text-xs font-semibold text-slate-700 outline-none disabled:opacity-60">
+                    <option value="OPEN">Aberto</option>
+                    <option value="IN_PROGRESS">Em andamento</option>
+                    <option value="DONE">Concluido</option>
+                    <option value="CANCELLED">Cancelado</option>
+                  </select>
+                  <svg class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
               </div>
             </article>
             } @empty {
