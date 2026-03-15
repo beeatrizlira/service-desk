@@ -8,13 +8,15 @@ export const PREDEFINED_USERS: AuthUser[] = [
     name: 'Ana Colaboradora',
     email: 'colaborador@service-desk.local',
     role: UserRole.COLLABORATOR,
-    password: '123456',
+    passwordHash:
+      '$2b$10$s16b1XI5I.GhwI/M9F9dm.ABhs6bQWD72pP3D2zwmHB7vaMsBFDRW',
   },
   {
     id: 2,
     name: 'Caio Suporte',
     email: 'suporte@service-desk.local',
     role: UserRole.SUPPORT,
-    password: '123456',
+    passwordHash:
+      '$2b$10$A/YdEXyFihARJ/AlNzEPie067UXBAg2oWYRJVw8fDWPr.BC4yZRsy',
   },
 ];

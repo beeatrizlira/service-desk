@@ -1,3 +1,4 @@
+import { compareSync } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PREDEFINED_USERS } from './constants/predefined-users';
@@ -16,7 +17,7 @@ export class AuthService {
 
   validateUser(email: string, password: string): AuthUser | null {
     const user = this.findUserByEmail(email);
-    if (!user || user.password !== password) {
+    if (!user || !compareSync(password, user.passwordHash)) {
       return null;
     }
     return user;

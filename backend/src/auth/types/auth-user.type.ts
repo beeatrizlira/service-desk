@@ -5,5 +5,5 @@ export type AuthUser = {
   name: string;
   email: string;
   role: UserRole;
-  password: string;
+  passwordHash: string;
 };
