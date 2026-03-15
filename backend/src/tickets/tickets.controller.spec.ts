@@ -188,7 +188,7 @@ describe('TicketsController (HTTP)', () => {
     ).expect(200);
 
     expect(ticketsServiceMock.findMine).toHaveBeenCalledTimes(1);
-    expect(ticketsServiceMock.findMine.mock.calls[0]?.[0]).toBe(1);
+    expect(ticketsServiceMock.findMine).toHaveBeenCalledWith(1, {});
     expect(response.body).toHaveLength(1);
   });
 

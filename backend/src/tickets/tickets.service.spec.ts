@@ -178,12 +178,17 @@ describe('TicketsService', () => {
       qb.getMany.mockResolvedValue(tickets);
       repo.createQueryBuilder.mockReturnValue(qb);
 
-      const result = await service.findAll({ period: TicketPeriod.LAST_7_DAYS });
+      const result = await service.findAll({
+        period: TicketPeriod.LAST_7_DAYS,
+      });
 
       expect(repo.createQueryBuilder).toHaveBeenCalledWith('ticket');
-      expect(qb.andWhere).toHaveBeenCalledWith('ticket.createdAt >= :fromDate', {
-        fromDate: expect.any(Date),
-      });
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        'ticket.createdAt >= :fromDate',
+        {
+          fromDate: expect.any(Date) as unknown,
+        },
+      );
       expect(qb.orderBy).toHaveBeenCalledWith('ticket.createdAt', 'DESC');
       expect(result).toEqual(tickets);
     });
@@ -207,7 +212,9 @@ describe('TicketsService', () => {
     });
 
     it('should apply q search for the provided user when q is informed', async () => {
-      const tickets = [makeTicket({ id: 21, userId: 7, title: 'Notebook com problema' })];
+      const tickets = [
+        makeTicket({ id: 21, userId: 7, title: 'Notebook com problema' }),
+      ];
       const qb: MockQueryBuilder = mockQueryBuilder();
       qb.getMany.mockResolvedValue(tickets);
       repo.createQueryBuilder.mockReturnValue(qb);
@@ -215,7 +222,9 @@ describe('TicketsService', () => {
       const result = await service.findMine(7, { q: 'note' });
 
       expect(repo.createQueryBuilder).toHaveBeenCalledWith('ticket');
-      expect(qb.where).toHaveBeenCalledWith('ticket.userId = :userId', { userId: 7 });
+      expect(qb.where).toHaveBeenCalledWith('ticket.userId = :userId', {
+        userId: 7,
+      });
       expect(qb.andWhere).toHaveBeenCalledWith(
         '(LOWER(ticket.title) LIKE :search OR LOWER(ticket.description) LIKE :search OR CAST(ticket.id AS TEXT) LIKE :search)',
         { search: '%note%' },
@@ -235,10 +244,15 @@ describe('TicketsService', () => {
       });
 
       expect(repo.createQueryBuilder).toHaveBeenCalledWith('ticket');
-      expect(qb.where).toHaveBeenCalledWith('ticket.userId = :userId', { userId: 7 });
-      expect(qb.andWhere).toHaveBeenCalledWith('ticket.createdAt >= :fromDate', {
-        fromDate: expect.any(Date),
+      expect(qb.where).toHaveBeenCalledWith('ticket.userId = :userId', {
+        userId: 7,
       });
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        'ticket.createdAt >= :fromDate',
+        {
+          fromDate: expect.any(Date) as unknown,
+        },
+      );
       expect(qb.orderBy).toHaveBeenCalledWith('ticket.createdAt', 'DESC');
       expect(result).toEqual(tickets);
     });

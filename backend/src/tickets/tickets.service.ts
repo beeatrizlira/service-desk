@@ -33,10 +33,15 @@ export class TicketsService {
       } = {};
       if (filters.status) where.status = filters.status;
       if (filters.category) where.category = filters.category;
-      return this.ticketRepository.find({ where, order: { createdAt: 'DESC' } });
+      return this.ticketRepository.find({
+        where,
+        order: { createdAt: 'DESC' },
+      });
     }
 
-    const qb = this.ticketRepository.createQueryBuilder('ticket').where('1 = 1');
+    const qb = this.ticketRepository
+      .createQueryBuilder('ticket')
+      .where('1 = 1');
     this.applyEnumFilters(qb, filters);
     this.applyPeriodFilter(qb, filters.period);
     if (query) {
@@ -45,7 +50,10 @@ export class TicketsService {
     return qb.orderBy('ticket.createdAt', 'DESC').getMany();
   }
 
-  findMine(userId: number, filters: FindTicketsQueryDto = {}): Promise<Ticket[]> {
+  findMine(
+    userId: number,
+    filters: FindTicketsQueryDto = {},
+  ): Promise<Ticket[]> {
     const query = filters.q?.trim();
     if (!query && !filters.period) {
       const where: {
@@ -100,11 +108,16 @@ export class TicketsService {
       qb.andWhere('ticket.status = :status', { status: filters.status });
     }
     if (filters.category) {
-      qb.andWhere('ticket.category = :category', { category: filters.category });
+      qb.andWhere('ticket.category = :category', {
+        category: filters.category,
+      });
     }
   }
 
-  private applySearchFilter(qb: SelectQueryBuilder<Ticket>, query: string): void {
+  private applySearchFilter(
+    qb: SelectQueryBuilder<Ticket>,
+    query: string,
+  ): void {
     const search = `%${query.toLowerCase()}%`;
     qb.andWhere(
       '(LOWER(ticket.title) LIKE :search OR LOWER(ticket.description) LIKE :search OR CAST(ticket.id AS TEXT) LIKE :search)',

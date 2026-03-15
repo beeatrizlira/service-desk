@@ -14,13 +14,14 @@ export class FindTicketsQueryDto {
   category?: TicketCategory;
 
   @IsOptional()
-  @Transform(({ value }) =>
-    typeof value === 'string' && value.trim() === ''
-      ? undefined
-      : typeof value === 'string'
-        ? value.trim()
-        : value,
-  )
+  @Transform(({ value }: { value: unknown }) => {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+
+    const trimmed = value.trim();
+    return trimmed === '' ? undefined : trimmed;
+  })
   @IsString()
   @MaxLength(120)
   q?: string;
