@@ -8,7 +8,7 @@ import { TicketFormComponent } from './ticket-form.component';
 const makeTicket = (overrides: Partial<Ticket> = {}): Ticket => ({
   id: 1,
   title: 'Problema no sistema',
-  description: 'Nao consigo acessar o ERP',
+  description: 'Não consigo acessar o ERP',
   category: TicketCategory.TI,
   status: TicketStatus.OPEN,
   userId: null,

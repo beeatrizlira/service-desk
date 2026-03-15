@@ -33,7 +33,7 @@ const makeTicket = (overrides: Partial<Ticket> = {}): Ticket =>
   ({
     id: 1,
     title: 'Problema no sistema',
-    description: 'Nao consigo acessar o ERP',
+    description: 'Não consigo acessar o ERP',
     category: TicketCategory.TI,
     status: TicketStatus.OPEN,
     userId: null,
@@ -65,7 +65,7 @@ describe('TicketsService', () => {
     it('should create and save a ticket with userId, returning it with an id and OPEN status', async () => {
       const dto: CreateTicketDto = {
         title: 'Problema no sistema',
-        description: 'Nao consigo acessar o ERP',
+        description: 'Não consigo acessar o ERP',
         category: TicketCategory.TI,
       };
       const userId = 7;

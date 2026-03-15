@@ -37,7 +37,7 @@
     <!-- Titulo -->
     <div class="space-y-2">
       <label for="ticket-title" class="text-sm font-semibold text-slate-700">Titulo</label>
-      <input id="ticket-title" type="text" formControlName="title" placeholder="Ex.: Nao consigo acessar o sistema interno" class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-200" [class.border-slate-300]="!titleInvalid" [class.border-rose-400]="titleInvalid" />
+      <input id="ticket-title" type="text" formControlName="title" placeholder="Ex.: Não consigo acessar o sistema interno" class="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-200" [class.border-slate-300]="!titleInvalid" [class.border-rose-400]="titleInvalid" />
       @if (titleInvalid) {
       @if (form.get('title')!.hasError('required')) {
       <p class="text-xs text-rose-500">Titulo é obrigatorio.</p>

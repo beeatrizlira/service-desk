@@ -2,62 +2,37 @@
   <header class="mb-6 space-y-2 text-center">
     <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Service Desk</p>
     <h2 class="text-3xl font-semibold text-slate-900">Entrar</h2>
-    <p class="text-sm text-slate-600">Use um usuario pre-definido para acessar o sistema.</p>
   </header>
 
-  <form
-    [formGroup]="form"
-    (ngSubmit)="onSubmit()"
-    class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-  >
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="space-y-1.5">
       <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
-      <input
-        id="login-email"
-        type="email"
-        formControlName="email"
-        autocomplete="username"
-        placeholder="colaborador@service-desk.local"
-        class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-      />
+      <input id="login-email" type="email" formControlName="email" autocomplete="username" placeholder="colaborador@service-desk.local" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200" />
       @if (emailInvalid) {
-        <p class="text-xs text-rose-600">Informe um email valido.</p>
+      <p class="text-xs text-rose-600">Informe um email valido.</p>
       }
     </div>
 
     <div class="space-y-1.5">
       <label for="login-password" class="text-sm font-medium text-slate-700">Senha</label>
-      <input
-        id="login-password"
-        type="password"
-        formControlName="password"
-        autocomplete="current-password"
-        placeholder="123456"
-        class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-      />
+      <input id="login-password" type="password" formControlName="password" autocomplete="current-password" placeholder="123456" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200" />
       @if (passwordInvalid) {
-        <p class="text-xs text-rose-600">A senha e obrigatoria.</p>
+      <p class="text-xs text-rose-600">A senha e obrigatoria.</p>
       }
     </div>
 
     @if (errorMessage()) {
-      <p class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-        {{ errorMessage() }}
-      </p>
+    <p class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+      {{ errorMessage() }}
+    </p>
     }
 
-    <button
-      type="submit"
-      [disabled]="loading()"
-      class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-    >
+    <button type="submit" [disabled]="loading()" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">
       {{ loading() ? 'Entrando...' : 'Entrar' }}
     </button>
   </form>
 
-  <aside
-    class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600"
-  >
+  <aside class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
     <p class="font-semibold text-slate-700">Credenciais de teste</p>
     <p class="mt-1">Colaborador: colaborador@service-desk.local / 123456</p>
     <p>Suporte: suporte@service-desk.local / 123456</p>

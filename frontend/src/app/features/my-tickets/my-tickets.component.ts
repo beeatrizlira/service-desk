@@ -187,7 +187,7 @@ export class MyTicketsComponent {
             .pipe(
               tap((tickets) => this.tickets.set(tickets)),
               catchError(() => {
-                this.error.set('Nao foi possivel carregar suas solicitacoes no momento.');
+                this.error.set('Não foi possivel carregar suas solicitacoes no momento.');
                 return of(null);
               }),
             ),

@@ -154,7 +154,7 @@ export class TicketFormComponent {
     this.submitGuardTimeoutId = setTimeout(() => {
       if (!this.loading()) return;
       this.loading.set(false);
-      this.openErrorToast('Nao foi possivel concluir a solicitacao. Tente novamente.');
+      this.openErrorToast('Não foi possivel concluir a solicitacao. Tente novamente.');
     }, 12000);
   }
 
@@ -179,7 +179,7 @@ export class TicketFormComponent {
 
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
-        return 'Nao foi possivel conectar ao servidor. Confira se a API esta online.';
+        return 'Não foi possivel conectar ao servidor. Confira se a API esta online.';
       }
 
       if (typeof error.error?.message === 'string' && error.error.message.trim()) {

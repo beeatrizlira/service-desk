@@ -252,7 +252,7 @@ export class KanbanBoardComponent {
         },
         error: () => {
           this.error.set(
-            'Nao foi possivel atualizar o status do chamado. Verifique sua conexao e tente novamente.',
+            'Não foi possivel atualizar o status do chamado. Verifique sua conexao e tente novamente.',
           );
         },
       });
@@ -480,7 +480,7 @@ export class KanbanBoardComponent {
               }),
               catchError(() => {
                 this.error.set(
-                  'Nao foi possivel carregar os chamados. Verifique se a API esta online.',
+                  'Não foi possivel carregar os chamados. Verifique se a API esta online.',
                 );
                 return of(null);
               }),

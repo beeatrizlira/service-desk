@@ -72,9 +72,9 @@ export class LoginComponent {
         return 'Email ou senha invalidos.';
       }
       if (error.status === 0) {
-        return 'Nao foi possivel conectar ao servidor.';
+        return 'Não foi possivel conectar ao servidor.';
       }
     }
-    return 'Nao foi possivel fazer login. Tente novamente.';
+    return 'Não foi possivel fazer login. Tente novamente.';
   }
 }

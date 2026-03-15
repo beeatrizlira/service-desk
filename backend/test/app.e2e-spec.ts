@@ -231,7 +231,7 @@ describe('Service Desk API (e2e)', () => {
       .set('Authorization', `Bearer ${supportToken}`)
       .send({
         title: 'Tentativa de abertura por suporte',
-        description: 'Nao deve ser permitido',
+        description: 'Não deve ser permitido',
         category: TicketCategory.TI,
       })
       .expect(403);
@@ -308,17 +308,29 @@ describe('Service Desk API (e2e)', () => {
       .expect(403);
   });
 
-  it('GET /api/tickets/:id should return 200 for collaborator when ticket belongs to them', async () => {
-    const createdTicket = await createTicketAsCollaborator();
-    const collaboratorToken = await loginAndGetToken(collaboratorCredentials);
+  it('GET /api/tickets/:id should return 403 for collaborator when ticket does not belong to them', async () => {
+    const supportToken = await loginAndGetToken(supportCredentials);
+    const createResponse = await request(httpServer())
+      .post('/api/tickets')
+      .set('Authorization', `Bearer ${await loginAndGetToken(collaboratorCredentials)}`)
+      .send({
+        title: `Ticket ownership ${Date.now()}`,
+        description: 'Validacao de ownership',
+        category: TicketCategory.TI,
+      })
+      .expect(201);
 
-    const response = await request(httpServer())
+    const createdTicket = parseTicketResponseBody(createResponse.body as unknown);
+
+    await request(httpServer())
+      .delete(`/api/tickets/${createdTicket.id}`)
+      .set('Authorization', `Bearer ${supportToken}`)
+      .expect(204);
+
+    const collaboratorToken = await loginAndGetToken(collaboratorCredentials);
+    await request(httpServer())
       .get(`/api/tickets/${createdTicket.id}`)
       .set('Authorization', `Bearer ${collaboratorToken}`)
-      .expect(200);
-
-    const ticket = parseTicketResponseBody(response.body as unknown);
-    expect(ticket.id).toBe(createdTicket.id);
-    expect(ticket.userId).toBe(1);
+      .expect(404);
   });
 });

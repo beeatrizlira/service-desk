@@ -16,7 +16,7 @@ import { TicketsService } from './tickets.service';
 const makeTicket = () => ({
   id: 1,
   title: 'Problema no sistema',
-  description: 'Nao consigo acessar o ERP',
+  description: 'Não consigo acessar o ERP',
   category: TicketCategory.TI,
   status: TicketStatus.OPEN,
   userId: null,
@@ -96,7 +96,7 @@ describe('TicketsController (HTTP)', () => {
   it('POST /tickets should create a ticket when payload is valid', async () => {
     const payload = {
       title: 'Problema no sistema',
-      description: 'Nao consigo acessar o ERP',
+      description: 'Não consigo acessar o ERP',
       category: TicketCategory.TI,
     };
     const ticket = makeTicket();
@@ -133,7 +133,7 @@ describe('TicketsController (HTTP)', () => {
   it('POST /tickets should return 403 when user role is support', async () => {
     const payload = {
       title: 'Problema no sistema',
-      description: 'Nao consigo acessar o ERP',
+      description: 'Não consigo acessar o ERP',
       category: TicketCategory.TI,
     };
 
