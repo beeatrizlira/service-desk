@@ -1,7 +1,7 @@
 # AI_USAGE.md
 
 ## Contexto
-Usei IA como acelerador de implementacao no backend e frontend do MVP, mas com revisao manual em cada etapa. O foco foi reduzir tempo de codigo repetitivo e manter controle tecnico nas decisoes.
+Usei IA como assistente de desenvolvimento para acelerar tarefas repetitivas e scaffolding inicial, mantendo revisão manual em todas as etapas.
 
 ## Ferramentas de IA utilizadas
 - Codex/Claude Code no terminal:
@@ -35,17 +35,17 @@ Essa estrategia evitou retrabalho grande e facilitou validar cada passo com comm
 - Motivo tecnico:
   - centralizar validacao em DTO e manter contrato forte da API.
 
-### 2) Tailwind carregava, mas classes nao aplicavam no Angular
+### 2) Tailwind carregava, mas classes não aplicavam no Angular
 - Saida inicial da IA:
   - configuracao incompleta da pipeline de estilos.
 - Problema observado:
-  - CSS do Tailwind aparecia no DevTools, mas utilitarios nao refletiam na tela.
+  - CSS do Tailwind aparecia no DevTools, mas utilitarios não refletiam na tela.
 - Correcao aplicada:
   - ajuste da configuracao PostCSS para `@tailwindcss/postcss`;
   - ajuste do arquivo global de estilos com `@source` para `index.html` e templates em `app/**/*.{html,ts}`;
   - restart do servidor e limpeza de cache do Angular.
 - Motivo tecnico:
-  - sem a configuracao correta, o build nao gerava/utilizava os utilitarios esperados.
+  - sem a configuracao correta, o build não gerava/utilizava os utilitarios esperados.
 
 ### 3) Submit do formulario ficava travado sem API
 - Saida inicial da IA:
@@ -66,7 +66,7 @@ Essa estrategia evitou retrabalho grande e facilitou validar cada passo com comm
   - desviava do escopo imediato e do objetivo de entrega incremental.
 - Correcao aplicada:
   - priorizei testes de unidade/controller no backend e testes de componente no frontend;
-  - deixei e2e como complemento, nao como bloqueador.
+  - deixei e2e como complemento, não como bloqueador.
 - Motivo tecnico:
   - maximizar cobertura util no tempo do teste tecnico.
 
@@ -89,3 +89,13 @@ Maior ganho: bootstrap da Fase 1 do backend.
 
 ## Conclusao
 A IA acelerou bastante a execucao, principalmente no codigo repetitivo e no scaffolding inicial. A qualidade final veio da revisao manual, validacao de comportamento real e correcoes tecnicas apos cada iteracao.
+
+## Critérios para aceitar ou rejeitar sugestões da IA
+
+Durante o desenvolvimento utilizei três critérios antes de aceitar qualquer sugestão da IA:
+
+- aderência ao escopo definido no `PLANNING.md`
+- consistência com a arquitetura escolhida
+- clareza e manutenção do código gerado
+
+Quando a sugestão da IA introduzia complexidade desnecessária ou se afastava do escopo do MVP, optei por simplificar ou reescrever manualmente.

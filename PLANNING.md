@@ -6,7 +6,7 @@
 |---|---------------|------------------|
 | 1 | Quais são as categorias das solicitações? São fixas ou o usuário pode criar novas? | Categorias fixas pré-definidas: TI, RH, Infraestrutura, Financeiro, Outros. |
 | 2 | Existe controle de acesso? Colaborador e suporte são perfis distintos com login? | Autenticação básica com email + senha e JWT. Dois perfis: **colaborador** (abre e acompanha suas solicitações) e **suporte** (visualiza todas e gerencia status). Sem registro aberto — usuários criados via seed. |
-| 3 | Quais são os status possíveis de uma solicitação e qual o fluxo de transição? | Fluxo linear: Aberta → Em andamento → Concluída. Suporte também pode marcar como "Cancelada". |
+| 3 | Quais são os status possíveis de uma solicitação e qual o fluxo de transição? | Os status definidos para o MVP são: **Aberta**, **Em andamento**, **Concluída** e **Cancelada**. Inicialmente considerei um fluxo linear (Aberta → Em andamento → Concluída), porém optei por permitir a alteração livre entre os estados principais para facilitar a gestão visual em um board estilo Kanban. Isso permite que solicitações retornem para etapas anteriores caso precisem de revisão ou reabertura.
 | 4 | O painel de acompanhamento é para o time de suporte, para os colaboradores, ou ambos? | Ambos, com visões diferentes. **Suporte:** Kanban board com todas as solicitações. **Colaborador:** lista das suas próprias solicitações com status atual. |
 | 5 | O painel precisa ter métricas específicas ou um overview geral é suficiente? | Overview operacional para o suporte: visualização das solicitações organizadas por status (estilo Kanban), com contadores por status e filtros por categoria. |
 | 6 | Existe SLA ou prioridade nas solicitações? | Não no MVP. Todas as solicitações têm a mesma prioridade. Prioridade fica como melhoria futura. |
@@ -23,7 +23,7 @@ A entrega segue uma estratégia incremental em duas fases, priorizando um sistem
 
 - CRUD de solicitações (criar, listar, visualizar detalhes, atualizar status)
 - Formulário para abrir solicitação (título, descrição, categoria)
-- Visão do suporte estilo Kanban board — colunas por status (Aberta, Em Andamento, Concluída, Cancelada) com cards
+- Visão do suporte estilo Kanban board — colunas por status (Aberta, Em Andamento, Concluída, Cancelada) com cards. Optei por essa visualização porque facilita a gestão operacional e reflete bem o fluxo de trabalho do suporte.
 - Mudança de status via clique no card
 - Dashboard com contadores por status e filtros por categoria
 - Persistência com SQLite (zero config para rodar local)
@@ -93,7 +93,7 @@ A entrega segue uma estratégia incremental em duas fases, priorizando um sistem
 | Frontend framework | **Angular 17+** | Framework robusto com standalone components e boa integração com TypeScript. Diferencial do teste. |
 | Banco de dados | **SQLite** (via TypeORM) | Zero configuração, sem Docker necessário, facilita rodar localmente. Aceito explicitamente no teste. |
 | ORM | **TypeORM** | Integração nativa com NestJS, suporte a SQLite, decorators. |
-| Estilização | **Angular Material** ou **Tailwind CSS** | Componentes prontos e responsivos sem precisar investir tempo em design. |
+Estilização | Tailwind CSS | Utilitários rápidos para layout e responsividade sem overhead de design system.
 | Monorepo vs Multi-repo | **Monorepo simples** | Uma pasta `backend/` e uma `frontend/` na raiz. Simples de clonar e rodar. |
 | Validação | **class-validator + class-transformer** | Padrão do NestJS para validação de DTOs via decorators. |
 | Autenticação (Fase 2) | **JWT (@nestjs/jwt + @nestjs/passport)** | Stateless, simples de implementar, padrão de mercado. Senha com bcrypt. |
