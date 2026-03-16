@@ -2,9 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, TimeoutError, timeout } from 'rxjs';
 import { UserRole } from '../../domain/models/auth.model';
 import { AuthService } from '../../core/services/auth.service';
+
+const LOGIN_REQUEST_TIMEOUT_MS = 15000;
 
 @Component({
   selector: 'app-login',
@@ -51,7 +53,10 @@ export class LoginComponent {
         email: email!,
         password: password!,
       })
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        timeout(LOGIN_REQUEST_TIMEOUT_MS),
+        finalize(() => this.loading.set(false)),
+      )
       .subscribe({
         next: (session) => {
           if (session.user.role === UserRole.SUPPORT) {
@@ -67,6 +72,10 @@ export class LoginComponent {
   }
 
   private getErrorMessage(error: unknown): string {
+    if (error instanceof TimeoutError) {
+      return 'O servidor demorou para responder. Tente novamente.';
+    }
+
     if (error instanceof HttpErrorResponse) {
       if (error.status === 401) {
         return 'Email ou senha invalidos.';
